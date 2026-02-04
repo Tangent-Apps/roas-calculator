@@ -14,7 +14,9 @@
 <body class="bg-gray-900 text-gray-100 min-h-screen p-6">
     <div class="max-w-4xl mx-auto">
         <h1 class="text-2xl font-bold mb-6">ROAS & Payback Calculator</h1>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Spend & Acquisition -->
             <div class="bg-gray-800 rounded-lg p-5">
                 <h2 class="text-lg font-semibold mb-4 text-blue-400">Spend & Acquisition</h2>
                 <div class="space-y-4">
@@ -22,20 +24,43 @@
                     <div><label class="block text-sm text-gray-400 mb-1">Cost Per Action / CPA ($)</label><input type="number" id="cpa" value="5" step="0.01" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
                     <div><label class="block text-sm text-gray-400 mb-1">Trial Length (days)</label><input type="number" id="trialLength" value="7" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
                     <div><label class="block text-sm text-gray-400 mb-1">Trial to Paid Conversion (%)</label><input type="number" id="ttpRate" value="10" step="0.1" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
-                    <div><label class="block text-sm text-gray-400 mb-1">Apple Tax</label><div class="flex gap-2"><button id="tax15" class="flex-1 py-2 px-3 rounded bg-gray-600 hover:bg-gray-500 transition">15%</button><button id="tax30" class="flex-1 py-2 px-3 rounded bg-blue-600 hover:bg-blue-500 transition">30%</button></div><p class="text-xs text-gray-500 mt-1">Net revenue = <span id="taxMultiplier">70%</span> of gross</p></div>
+                    <div><label class="block text-sm text-gray-400 mb-1">Apple Tax</label>
+                        <div class="flex gap-2">
+                            <button id="tax15" class="flex-1 py-2 px-3 rounded bg-gray-600 hover:bg-gray-500 transition">15%</button>
+                            <button id="tax30" class="flex-1 py-2 px-3 rounded bg-blue-600 hover:bg-blue-500 transition">30%</button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Net revenue = <span id="taxMultiplier">70%</span> of gross</p>
+                    </div>
                     <div><label class="block text-sm text-gray-400 mb-1">Weekly Churn Rate (%)</label><input type="number" id="weeklyChurn" value="15" step="1" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"><p class="text-xs text-gray-500 mt-1">% of weekly subs that cancel each week</p></div>
                 </div>
             </div>
+
+            <!-- Pricing & Split -->
             <div class="bg-gray-800 rounded-lg p-5">
                 <h2 class="text-lg font-semibold mb-4 text-green-400">Pricing & Split</h2>
                 <div class="space-y-3">
-                    <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-gray-400 mb-1">Weekly Price ($)</label><input type="number" id="weeklyPrice" value="4.99" step="0.01" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div><div><label class="block text-sm text-gray-400 mb-1">% of Users</label><input type="number" id="weeklySplit" value="30" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div></div>
-                    <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-gray-400 mb-1">Annual Price ($)</label><input type="number" id="annualPrice" value="29.99" step="0.01" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div><div><label class="block text-sm text-gray-400 mb-1">% of Users</label><input type="number" id="annualSplit" value="50" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div></div>
-                    <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-gray-400 mb-1">Lifetime Price ($)</label><input type="number" id="lifetimePrice" value="79.99" step="0.01" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div><div><label class="block text-sm text-gray-400 mb-1">% of Users</label><input type="number" id="lifetimeSplit" value="20" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-sm text-gray-400 mb-1">Weekly Price ($)</label><input type="number" id="weeklyPrice" value="4.99" step="0.01" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                        <div><label class="block text-sm text-gray-400 mb-1">% of Users</label><input type="number" id="weeklySplit" value="25" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-sm text-gray-400 mb-1">Monthly Price ($)</label><input type="number" id="monthlyPrice" value="9.99" step="0.01" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                        <div><label class="block text-sm text-gray-400 mb-1">% of Users</label><input type="number" id="monthlySplit" value="25" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-sm text-gray-400 mb-1">Annual Price ($)</label><input type="number" id="annualPrice" value="29.99" step="0.01" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                        <div><label class="block text-sm text-gray-400 mb-1">% of Users</label><input type="number" id="annualSplit" value="35" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-sm text-gray-400 mb-1">Lifetime Price ($)</label><input type="number" id="lifetimePrice" value="79.99" step="0.01" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                        <div><label class="block text-sm text-gray-400 mb-1">% of Users</label><input type="number" id="lifetimeSplit" value="15" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                    </div>
                     <p id="splitWarning" class="text-xs text-yellow-400 hidden">Splits don't add to 100%</p>
                 </div>
             </div>
         </div>
+
+        <!-- Results -->
         <div class="bg-gray-800 rounded-lg p-5 mb-6">
             <h2 class="text-lg font-semibold mb-4 text-purple-400">Results</h2>
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
@@ -46,17 +71,197 @@
                 <div class="bg-gray-700 rounded p-3"><p class="text-xs text-gray-400">Revenue/Day (at conversion)</p><p id="revenuePerDay" class="text-xl font-bold">$490</p></div>
             </div>
             <h3 class="text-sm font-semibold mb-3 text-gray-300">ROAS by Timeframe (100% = Break Even)</h3>
-            <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-left text-gray-400 border-b border-gray-600"><th class="pb-2">Timeframe</th><th class="pb-2">ROAS</th><th class="pb-2">Status</th><th class="pb-2">Cumulative Revenue</th><th class="pb-2">Cumulative Spend</th></tr></thead><tbody id="roasTable" class="text-gray-300"></tbody></table></div>
-            <div class="mt-6 p-4 bg-gray-700 rounded-lg"><p class="text-sm text-gray-400">Payback Point (100% ROAS)</p><p id="paybackSummary" class="text-lg font-bold text-green-400">After Week 2 (Day 14)</p></div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-gray-400 border-b border-gray-600">
+                            <th class="pb-2">Timeframe</th>
+                            <th class="pb-2">ROAS</th>
+                            <th class="pb-2">Status</th>
+                            <th class="pb-2">Cumulative Revenue</th>
+                            <th class="pb-2">Cumulative Spend</th>
+                            <th class="pb-2">Gross Margin</th>
+                        </tr>
+                    </thead>
+                    <tbody id="roasTable" class="text-gray-300"></tbody>
+                </table>
+            </div>
+            <div class="mt-6 p-4 bg-gray-700 rounded-lg">
+                <p class="text-sm text-gray-400">Payback Point (100% ROAS)</p>
+                <p id="paybackSummary" class="text-lg font-bold text-green-400">After Week 2 (Day 14)</p>
+            </div>
         </div>
+
+        <!-- Weekly Cohort -->
         <div class="bg-gray-800 rounded-lg p-5">
             <h2 class="text-lg font-semibold mb-4 text-orange-400">Weekly Cohort Revenue Curve</h2>
             <p class="text-xs text-gray-400 mb-3">Shows how a single day's cohort generates revenue over time (weekly subscribers renew)</p>
-            <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-left text-gray-400 border-b border-gray-600"><th class="pb-2">Week</th><th class="pb-2">Active Weekly Subs</th><th class="pb-2">Weekly Rev</th><th class="pb-2">Cumulative Rev</th><th class="pb-2">ROAS</th></tr></thead><tbody id="cohortTable" class="text-gray-300"></tbody></table></div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-gray-400 border-b border-gray-600">
+                            <th class="pb-2">Week</th>
+                            <th class="pb-2">Active Weekly Subs</th>
+                            <th class="pb-2">Weekly Rev</th>
+                            <th class="pb-2">Cumulative Rev</th>
+                            <th class="pb-2">ROAS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cohortTable" class="text-gray-300"></tbody>
+                    <tbody id="cohortTableExtended" class="text-gray-300 hidden"></tbody>
+                </table>
+            </div>
+            <button id="toggleWeeks" class="mt-4 text-sm text-blue-400 hover:text-blue-300 transition">See more (weeks 13-24) ▼</button>
         </div>
     </div>
+
     <script>
-        let appleTax=0.30;function getValue(id){return parseFloat(document.getElementById(id).value)||0}function setAppleTax(rate){appleTax=rate;document.getElementById('tax15').className=rate===0.15?'flex-1 py-2 px-3 rounded bg-blue-600 hover:bg-blue-500 transition':'flex-1 py-2 px-3 rounded bg-gray-600 hover:bg-gray-500 transition';document.getElementById('tax30').className=rate===0.30?'flex-1 py-2 px-3 rounded bg-blue-600 hover:bg-blue-500 transition':'flex-1 py-2 px-3 rounded bg-gray-600 hover:bg-gray-500 transition';document.getElementById('taxMultiplier').textContent=((1-appleTax)*100).toFixed(0)+'%';calculate()}function formatCurrency(val){return '$'+val.toFixed(2)}function formatPercent(val){return val.toFixed(1)+'%'}function getStatusBadge(roas){if(roas>=100)return'<span class="px-2 py-1 bg-green-600 rounded text-xs">Profitable</span>';else if(roas>=80)return'<span class="px-2 py-1 bg-yellow-600 rounded text-xs">Close</span>';else return'<span class="px-2 py-1 bg-red-600 rounded text-xs">Loss</span>'}function calculate(){const dailySpend=getValue('dailySpend'),cpa=getValue('cpa'),trialLength=getValue('trialLength'),ttpRate=getValue('ttpRate')/100;const weeklyPrice=getValue('weeklyPrice'),annualPrice=getValue('annualPrice'),lifetimePrice=getValue('lifetimePrice');const weeklySplit=getValue('weeklySplit')/100,annualSplit=getValue('annualSplit')/100,lifetimeSplit=getValue('lifetimeSplit')/100;const weeklyChurn=getValue('weeklyChurn')/100;const totalSplit=weeklySplit+annualSplit+lifetimeSplit;document.getElementById('splitWarning').classList.toggle('hidden',Math.abs(totalSplit-1)<0.01);const trialsPerDay=cpa>0?dailySpend/cpa:0,conversionsPerDay=trialsPerDay*ttpRate;const blendedArpu=(weeklyPrice*weeklySplit)+(annualPrice*annualSplit)+(lifetimePrice*lifetimeSplit);const netMultiplier=1-appleTax,netArpu=blendedArpu*netMultiplier,netWeeklyPrice=weeklyPrice*netMultiplier;const revenuePerDay=conversionsPerDay*netArpu;document.getElementById('trialsPerDay').textContent=trialsPerDay.toFixed(0);document.getElementById('conversionsPerDay').textContent=conversionsPerDay.toFixed(1);document.getElementById('blendedArpu').textContent=formatCurrency(blendedArpu);document.getElementById('netArpu').textContent=formatCurrency(netArpu);document.getElementById('revenuePerDay').textContent=formatCurrency(revenuePerDay);const timeframes=[{label:'Day 1 (spend)',days:1},{label:'Day '+trialLength+' (trial ends)',days:trialLength},{label:'Day '+(trialLength+1)+' (first revenue)',days:trialLength+1},{label:'Week 1',days:7},{label:'Week 2',days:14},{label:'Week 4',days:28},{label:'Week 8',days:56},{label:'Week 12',days:84}];let roasHtml='',paybackDay=null;timeframes.forEach(tf=>{const cumSpend=dailySpend*tf.days,daysWithRevenue=Math.max(0,tf.days-trialLength),cumRevenue=revenuePerDay*daysWithRevenue;let weeklyRenewalRevenue=0;for(let cohortDay=1;cohortDay<=Math.min(tf.days,tf.days-trialLength);cohortDay++){const daysSinceConversion=tf.days-trialLength-cohortDay+1;if(daysSinceConversion>0){const renewalWeeks=Math.floor(daysSinceConversion/7),initialWeeklySubsForCohort=conversionsPerDay*weeklySplit;for(let r=1;r<=renewalWeeks;r++)weeklyRenewalRevenue+=initialWeeklySubsForCohort*Math.pow(1-weeklyChurn,r)*netWeeklyPrice}}const totalRevenue=cumRevenue+weeklyRenewalRevenue,roas=cumSpend>0?(totalRevenue/cumSpend)*100:0;if(roas>=100&&paybackDay===null)paybackDay=tf.days;roasHtml+='<tr class="border-b border-gray-700"><td class="py-2">'+tf.label+'</td><td class="py-2 font-mono '+(roas>=100?'text-green-400':'text-red-400')+'">'+formatPercent(roas)+'</td><td class="py-2">'+getStatusBadge(roas)+'</td><td class="py-2 font-mono">'+formatCurrency(totalRevenue)+'</td><td class="py-2 font-mono">'+formatCurrency(cumSpend)+'</td></tr>'});document.getElementById('roasTable').innerHTML=roasHtml;if(paybackDay!==null){document.getElementById('paybackSummary').textContent='Around Day '+paybackDay+' (Week '+Math.ceil(paybackDay/7)+')';document.getElementById('paybackSummary').className='text-lg font-bold text-green-400'}else{document.getElementById('paybackSummary').textContent='Not reached within 12 weeks';document.getElementById('paybackSummary').className='text-lg font-bold text-red-400'}let cohortHtml='',cumCohortRev=0;const initialWeeklySubs=conversionsPerDay*weeklySplit;let activeWeeklySubs=initialWeeklySubs;for(let week=0;week<=12;week++){let weekRevenue=0;if(week===0){weekRevenue=0;activeWeeklySubs=initialWeeklySubs}else if(week===1){weekRevenue=conversionsPerDay*netArpu;activeWeeklySubs=initialWeeklySubs}else{activeWeeklySubs=activeWeeklySubs*(1-weeklyChurn);weekRevenue=activeWeeklySubs*netWeeklyPrice}cumCohortRev+=weekRevenue;const cohortRoas=dailySpend>0?(cumCohortRev/dailySpend)*100:0;cohortHtml+='<tr class="border-b border-gray-700"><td class="py-2">Week '+week+'</td><td class="py-2 font-mono">'+(week===0?'-':activeWeeklySubs.toFixed(1))+'</td><td class="py-2 font-mono">'+formatCurrency(weekRevenue)+'</td><td class="py-2 font-mono">'+formatCurrency(cumCohortRev)+'</td><td class="py-2 font-mono '+(cohortRoas>=100?'text-green-400':'text-red-400')+'">'+formatPercent(cohortRoas)+'</td></tr>'}document.getElementById('cohortTable').innerHTML=cohortHtml}document.querySelectorAll('input').forEach(input=>input.addEventListener('input',calculate));document.getElementById('tax15').addEventListener('click',()=>setAppleTax(0.15));document.getElementById('tax30').addEventListener('click',()=>setAppleTax(0.30));calculate();
+        let appleTax = 0.30;
+        let showExtendedWeeks = false;
+
+        function getValue(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+        function setAppleTax(rate) {
+            appleTax = rate;
+            document.getElementById('tax15').className = rate === 0.15 ? 'flex-1 py-2 px-3 rounded bg-blue-600 hover:bg-blue-500 transition' : 'flex-1 py-2 px-3 rounded bg-gray-600 hover:bg-gray-500 transition';
+            document.getElementById('tax30').className = rate === 0.30 ? 'flex-1 py-2 px-3 rounded bg-blue-600 hover:bg-blue-500 transition' : 'flex-1 py-2 px-3 rounded bg-gray-600 hover:bg-gray-500 transition';
+            document.getElementById('taxMultiplier').textContent = ((1 - appleTax) * 100).toFixed(0) + '%';
+            calculate();
+        }
+
+        function formatCurrency(val) { return '$' + val.toFixed(2); }
+        function formatPercent(val) { return val.toFixed(1) + '%'; }
+        function formatMargin(val) {
+            if (val >= 0) return '<span class="text-green-400">$' + val.toFixed(2) + '</span>';
+            return '<span class="text-red-400">-$' + Math.abs(val).toFixed(2) + '</span>';
+        }
+
+        function getStatusBadge(roas) {
+            if (roas >= 100) return '<span class="px-2 py-1 bg-green-600 rounded text-xs">Profitable</span>';
+            else if (roas >= 80) return '<span class="px-2 py-1 bg-yellow-600 rounded text-xs">Close</span>';
+            else return '<span class="px-2 py-1 bg-red-600 rounded text-xs">Loss</span>';
+        }
+
+        function toggleExtendedWeeks() {
+            showExtendedWeeks = !showExtendedWeeks;
+            document.getElementById('cohortTableExtended').classList.toggle('hidden', !showExtendedWeeks);
+            document.getElementById('toggleWeeks').textContent = showExtendedWeeks ? 'See less ▲' : 'See more (weeks 13-24) ▼';
+        }
+
+        function calculate() {
+            const dailySpend = getValue('dailySpend'), cpa = getValue('cpa'), trialLength = getValue('trialLength'), ttpRate = getValue('ttpRate') / 100;
+            const weeklyPrice = getValue('weeklyPrice'), monthlyPrice = getValue('monthlyPrice'), annualPrice = getValue('annualPrice'), lifetimePrice = getValue('lifetimePrice');
+            const weeklySplit = getValue('weeklySplit') / 100, monthlySplit = getValue('monthlySplit') / 100, annualSplit = getValue('annualSplit') / 100, lifetimeSplit = getValue('lifetimeSplit') / 100;
+            const weeklyChurn = getValue('weeklyChurn') / 100;
+
+            const totalSplit = weeklySplit + monthlySplit + annualSplit + lifetimeSplit;
+            document.getElementById('splitWarning').classList.toggle('hidden', Math.abs(totalSplit - 1) < 0.01);
+
+            const trialsPerDay = cpa > 0 ? dailySpend / cpa : 0, conversionsPerDay = trialsPerDay * ttpRate;
+            const blendedArpu = (weeklyPrice * weeklySplit) + (monthlyPrice * monthlySplit) + (annualPrice * annualSplit) + (lifetimePrice * lifetimeSplit);
+            const netMultiplier = 1 - appleTax, netArpu = blendedArpu * netMultiplier;
+            const netWeeklyPrice = weeklyPrice * netMultiplier;
+            const netMonthlyPrice = monthlyPrice * netMultiplier;
+            const revenuePerDay = conversionsPerDay * netArpu;
+
+            document.getElementById('trialsPerDay').textContent = trialsPerDay.toFixed(0);
+            document.getElementById('conversionsPerDay').textContent = conversionsPerDay.toFixed(1);
+            document.getElementById('blendedArpu').textContent = formatCurrency(blendedArpu);
+            document.getElementById('netArpu').textContent = formatCurrency(netArpu);
+            document.getElementById('revenuePerDay').textContent = formatCurrency(revenuePerDay);
+
+            const timeframes = [
+                { label: 'Day 1 (spend)', days: 1 },
+                { label: 'Day ' + trialLength + ' (trial ends)', days: trialLength },
+                { label: 'Day ' + (trialLength + 1) + ' (first revenue)', days: trialLength + 1 },
+                { label: 'Week 1', days: 7 },
+                { label: 'Week 2', days: 14 },
+                { label: 'Week 4', days: 28 },
+                { label: 'Week 8', days: 56 },
+                { label: 'Week 12', days: 84 }
+            ];
+
+            let roasHtml = '', paybackDay = null;
+
+            timeframes.forEach(tf => {
+                const cumSpend = dailySpend * tf.days;
+                const daysWithRevenue = Math.max(0, tf.days - trialLength);
+                const cumRevenue = revenuePerDay * daysWithRevenue;
+
+                let weeklyRenewalRevenue = 0;
+                let monthlyRenewalRevenue = 0;
+
+                for (let cohortDay = 1; cohortDay <= Math.min(tf.days, tf.days - trialLength); cohortDay++) {
+                    const daysSinceConversion = tf.days - trialLength - cohortDay + 1;
+                    if (daysSinceConversion > 0) {
+                        const renewalWeeks = Math.floor(daysSinceConversion / 7);
+                        const initialWeeklySubsForCohort = conversionsPerDay * weeklySplit;
+                        for (let r = 1; r <= renewalWeeks; r++) {
+                            weeklyRenewalRevenue += initialWeeklySubsForCohort * Math.pow(1 - weeklyChurn, r) * netWeeklyPrice;
+                        }
+                        const renewalMonths = Math.floor(daysSinceConversion / 30);
+                        const initialMonthlySubsForCohort = conversionsPerDay * monthlySplit;
+                        monthlyRenewalRevenue += initialMonthlySubsForCohort * renewalMonths * netMonthlyPrice;
+                    }
+                }
+
+                const totalRevenue = cumRevenue + weeklyRenewalRevenue + monthlyRenewalRevenue;
+                const grossMargin = totalRevenue - cumSpend;
+                const roas = cumSpend > 0 ? (totalRevenue / cumSpend) * 100 : 0;
+
+                if (roas >= 100 && paybackDay === null) paybackDay = tf.days;
+
+                roasHtml += '<tr class="border-b border-gray-700"><td class="py-2">' + tf.label + '</td><td class="py-2 font-mono ' + (roas >= 100 ? 'text-green-400' : 'text-red-400') + '">' + formatPercent(roas) + '</td><td class="py-2">' + getStatusBadge(roas) + '</td><td class="py-2 font-mono">' + formatCurrency(totalRevenue) + '</td><td class="py-2 font-mono">' + formatCurrency(cumSpend) + '</td><td class="py-2 font-mono">' + formatMargin(grossMargin) + '</td></tr>';
+            });
+
+            document.getElementById('roasTable').innerHTML = roasHtml;
+
+            if (paybackDay !== null) {
+                document.getElementById('paybackSummary').textContent = 'Around Day ' + paybackDay + ' (Week ' + Math.ceil(paybackDay / 7) + ')';
+                document.getElementById('paybackSummary').className = 'text-lg font-bold text-green-400';
+            } else {
+                document.getElementById('paybackSummary').textContent = 'Not reached within 12 weeks';
+                document.getElementById('paybackSummary').className = 'text-lg font-bold text-red-400';
+            }
+
+            let cohortHtml = '', cohortHtmlExtended = '', cumCohortRev = 0;
+            const initialWeeklySubs = conversionsPerDay * weeklySplit;
+            let activeWeeklySubs = initialWeeklySubs;
+
+            for (let week = 0; week <= 24; week++) {
+                let weekRevenue = 0;
+                if (week === 0) {
+                    weekRevenue = 0;
+                    activeWeeklySubs = initialWeeklySubs;
+                } else if (week === 1) {
+                    weekRevenue = conversionsPerDay * netArpu;
+                    activeWeeklySubs = initialWeeklySubs;
+                } else {
+                    activeWeeklySubs = activeWeeklySubs * (1 - weeklyChurn);
+                    weekRevenue = activeWeeklySubs * netWeeklyPrice;
+                }
+
+                cumCohortRev += weekRevenue;
+                const cohortRoas = dailySpend > 0 ? (cumCohortRev / dailySpend) * 100 : 0;
+
+                const rowHtml = '<tr class="border-b border-gray-700"><td class="py-2">Week ' + week + '</td><td class="py-2 font-mono">' + (week === 0 ? '-' : activeWeeklySubs.toFixed(1)) + '</td><td class="py-2 font-mono">' + formatCurrency(weekRevenue) + '</td><td class="py-2 font-mono">' + formatCurrency(cumCohortRev) + '</td><td class="py-2 font-mono ' + (cohortRoas >= 100 ? 'text-green-400' : 'text-red-400') + '">' + formatPercent(cohortRoas) + '</td></tr>';
+
+                if (week <= 12) {
+                    cohortHtml += rowHtml;
+                } else {
+                    cohortHtmlExtended += rowHtml;
+                }
+            }
+
+            document.getElementById('cohortTable').innerHTML = cohortHtml;
+            document.getElementById('cohortTableExtended').innerHTML = cohortHtmlExtended;
+        }
+
+        document.querySelectorAll('input').forEach(input => input.addEventListener('input', calculate));
+        document.getElementById('tax15').addEventListener('click', () => setAppleTax(0.15));
+        document.getElementById('tax30').addEventListener('click', () => setAppleTax(0.30));
+        document.getElementById('toggleWeeks').addEventListener('click', toggleExtendedWeeks);
+        calculate();
     </script>
 </body>
 </html>
