@@ -84,8 +84,10 @@
                         </tr>
                     </thead>
                     <tbody id="roasTable" class="text-gray-300"></tbody>
+                    <tbody id="roasTableExtended" class="text-gray-300 hidden"></tbody>
                 </table>
             </div>
+            <button id="toggleRoasWeeks" class="mt-4 text-sm text-blue-400 hover:text-blue-300 transition">See more (weeks 16-24) ▼</button>
             <div class="mt-6 p-4 bg-gray-700 rounded-lg">
                 <p class="text-sm text-gray-400">Payback Point (100% ROAS)</p>
                 <p id="paybackSummary" class="text-lg font-bold text-green-400">After Week 2 (Day 14)</p>
@@ -118,6 +120,7 @@
     <script>
         let appleTax = 0.30;
         let showExtendedWeeks = false;
+        let showExtendedRoas = false;
 
         function getValue(id) { return parseFloat(document.getElementById(id).value) || 0; }
 
@@ -148,6 +151,12 @@
             document.getElementById('toggleWeeks').textContent = showExtendedWeeks ? 'See less ▲' : 'See more (weeks 13-24) ▼';
         }
 
+        function toggleExtendedRoas() {
+            showExtendedRoas = !showExtendedRoas;
+            document.getElementById('roasTableExtended').classList.toggle('hidden', !showExtendedRoas);
+            document.getElementById('toggleRoasWeeks').textContent = showExtendedRoas ? 'See less ▲' : 'See more (weeks 16-24) ▼';
+        }
+
         function calculate() {
             const dailySpend = getValue('dailySpend'), cpa = getValue('cpa'), trialLength = getValue('trialLength'), ttpRate = getValue('ttpRate') / 100;
             const weeklyPrice = getValue('weeklyPrice'), monthlyPrice = getValue('monthlyPrice'), annualPrice = getValue('annualPrice'), lifetimePrice = getValue('lifetimePrice');
@@ -170,7 +179,8 @@
             document.getElementById('netArpu').textContent = formatCurrency(netArpu);
             document.getElementById('revenuePerDay').textContent = formatCurrency(revenuePerDay);
 
-            const timeframes = [
+            // Base timeframes (shown by default)
+            const baseTimeframes = [
                 { label: 'Day 1 (spend)', days: 1 },
                 { label: 'Day ' + trialLength + ' (trial ends)', days: trialLength },
                 { label: 'Day ' + (trialLength + 1) + ' (first revenue)', days: trialLength + 1 },
@@ -181,9 +191,14 @@
                 { label: 'Week 12', days: 84 }
             ];
 
-            let roasHtml = '', paybackDay = null;
+            // Extended timeframes (hidden by default)
+            const extendedTimeframes = [
+                { label: 'Week 16', days: 112 },
+                { label: 'Week 20', days: 140 },
+                { label: 'Week 24', days: 168 }
+            ];
 
-            timeframes.forEach(tf => {
+            function calculateRoasRow(tf) {
                 const cumSpend = dailySpend * tf.days;
                 const daysWithRevenue = Math.max(0, tf.days - trialLength);
                 const cumRevenue = revenuePerDay * daysWithRevenue;
@@ -209,21 +224,35 @@
                 const grossMargin = totalRevenue - cumSpend;
                 const roas = cumSpend > 0 ? (totalRevenue / cumSpend) * 100 : 0;
 
-                if (roas >= 100 && paybackDay === null) paybackDay = tf.days;
+                return { totalRevenue, cumSpend, grossMargin, roas, days: tf.days, label: tf.label };
+            }
 
-                roasHtml += '<tr class="border-b border-gray-700"><td class="py-2">' + tf.label + '</td><td class="py-2 font-mono ' + (roas >= 100 ? 'text-green-400' : 'text-red-400') + '">' + formatPercent(roas) + '</td><td class="py-2">' + getStatusBadge(roas) + '</td><td class="py-2 font-mono">' + formatCurrency(totalRevenue) + '</td><td class="py-2 font-mono">' + formatCurrency(cumSpend) + '</td><td class="py-2 font-mono">' + formatMargin(grossMargin) + '</td></tr>';
+            let roasHtml = '', roasHtmlExtended = '', paybackDay = null;
+
+            baseTimeframes.forEach(tf => {
+                const result = calculateRoasRow(tf);
+                if (result.roas >= 100 && paybackDay === null) paybackDay = result.days;
+                roasHtml += '<tr class="border-b border-gray-700"><td class="py-2">' + result.label + '</td><td class="py-2 font-mono ' + (result.roas >= 100 ? 'text-green-400' : 'text-red-400') + '">' + formatPercent(result.roas) + '</td><td class="py-2">' + getStatusBadge(result.roas) + '</td><td class="py-2 font-mono">' + formatCurrency(result.totalRevenue) + '</td><td class="py-2 font-mono">' + formatCurrency(result.cumSpend) + '</td><td class="py-2 font-mono">' + formatMargin(result.grossMargin) + '</td></tr>';
+            });
+
+            extendedTimeframes.forEach(tf => {
+                const result = calculateRoasRow(tf);
+                if (result.roas >= 100 && paybackDay === null) paybackDay = result.days;
+                roasHtmlExtended += '<tr class="border-b border-gray-700"><td class="py-2">' + result.label + '</td><td class="py-2 font-mono ' + (result.roas >= 100 ? 'text-green-400' : 'text-red-400') + '">' + formatPercent(result.roas) + '</td><td class="py-2">' + getStatusBadge(result.roas) + '</td><td class="py-2 font-mono">' + formatCurrency(result.totalRevenue) + '</td><td class="py-2 font-mono">' + formatCurrency(result.cumSpend) + '</td><td class="py-2 font-mono">' + formatMargin(result.grossMargin) + '</td></tr>';
             });
 
             document.getElementById('roasTable').innerHTML = roasHtml;
+            document.getElementById('roasTableExtended').innerHTML = roasHtmlExtended;
 
             if (paybackDay !== null) {
                 document.getElementById('paybackSummary').textContent = 'Around Day ' + paybackDay + ' (Week ' + Math.ceil(paybackDay / 7) + ')';
                 document.getElementById('paybackSummary').className = 'text-lg font-bold text-green-400';
             } else {
-                document.getElementById('paybackSummary').textContent = 'Not reached within 12 weeks';
+                document.getElementById('paybackSummary').textContent = 'Not reached within 24 weeks';
                 document.getElementById('paybackSummary').className = 'text-lg font-bold text-red-400';
             }
 
+            // Cohort Table
             let cohortHtml = '', cohortHtmlExtended = '', cumCohortRev = 0;
             const initialWeeklySubs = conversionsPerDay * weeklySplit;
             let activeWeeklySubs = initialWeeklySubs;
@@ -261,6 +290,7 @@
         document.getElementById('tax15').addEventListener('click', () => setAppleTax(0.15));
         document.getElementById('tax30').addEventListener('click', () => setAppleTax(0.30));
         document.getElementById('toggleWeeks').addEventListener('click', toggleExtendedWeeks);
+        document.getElementById('toggleRoasWeeks').addEventListener('click', toggleExtendedRoas);
         calculate();
     </script>
 </body>
