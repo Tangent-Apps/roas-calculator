@@ -13,7 +13,19 @@
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen p-6">
     <div class="max-w-4xl mx-auto">
-        <h1 class="text-2xl font-bold mb-6">ROAS & Payback Calculator</h1>
+        <h1 class="text-2xl font-bold mb-4">ROAS & Payback Calculator</h1>
+
+        <!-- Preset Selector -->
+        <div class="bg-gray-800 rounded-lg p-4 mb-6 flex flex-wrap items-center gap-3">
+            <label class="text-sm text-gray-400">App Preset:</label>
+            <select id="presetSelect" class="bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]">
+                <option value="">-- Select or create --</option>
+            </select>
+            <button id="newPresetBtn" class="px-3 py-2 bg-green-600 hover:bg-green-500 rounded text-sm transition">+ New</button>
+            <button id="renamePresetBtn" class="px-3 py-2 bg-yellow-600 hover:bg-yellow-500 rounded text-sm transition hidden">Rename</button>
+            <button id="deletePresetBtn" class="px-3 py-2 bg-red-600 hover:bg-red-500 rounded text-sm transition hidden">Delete</button>
+            <span id="autoSaveIndicator" class="text-xs text-green-400 ml-auto hidden">✓ Auto-saved</span>
+        </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <!-- Spend & Acquisition -->
@@ -121,15 +133,173 @@
         let appleTax = 0.30;
         let showExtendedWeeks = false;
         let showExtendedRoas = false;
+        let currentPresetId = null;
+        let saveTimeout = null;
+
+        const STORAGE_KEY = 'roas_calculator_presets';
+
+        function getPresets() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : {};
+        }
+
+        function savePresets(presets) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
+        }
+
+        function getCurrentValues() {
+            return {
+                dailySpend: getValue('dailySpend'),
+                cpa: getValue('cpa'),
+                trialLength: getValue('trialLength'),
+                ttpRate: getValue('ttpRate'),
+                weeklyPrice: getValue('weeklyPrice'),
+                weeklySplit: getValue('weeklySplit'),
+                monthlyPrice: getValue('monthlyPrice'),
+                monthlySplit: getValue('monthlySplit'),
+                annualPrice: getValue('annualPrice'),
+                annualSplit: getValue('annualSplit'),
+                lifetimePrice: getValue('lifetimePrice'),
+                lifetimeSplit: getValue('lifetimeSplit'),
+                weeklyChurn: getValue('weeklyChurn'),
+                appleTax: appleTax
+            };
+        }
+
+        function loadPresetValues(values) {
+            document.getElementById('dailySpend').value = values.dailySpend || 1000;
+            document.getElementById('cpa').value = values.cpa || 5;
+            document.getElementById('trialLength').value = values.trialLength || 7;
+            document.getElementById('ttpRate').value = values.ttpRate || 10;
+            document.getElementById('weeklyPrice').value = values.weeklyPrice || 4.99;
+            document.getElementById('weeklySplit').value = values.weeklySplit || 25;
+            document.getElementById('monthlyPrice').value = values.monthlyPrice || 9.99;
+            document.getElementById('monthlySplit').value = values.monthlySplit || 25;
+            document.getElementById('annualPrice').value = values.annualPrice || 29.99;
+            document.getElementById('annualSplit').value = values.annualSplit || 35;
+            document.getElementById('lifetimePrice').value = values.lifetimePrice || 79.99;
+            document.getElementById('lifetimeSplit').value = values.lifetimeSplit || 15;
+            document.getElementById('weeklyChurn').value = values.weeklyChurn || 15;
+            if (values.appleTax !== undefined) {
+                setAppleTax(values.appleTax, false);
+            }
+            calculate();
+        }
+
+        function renderPresetDropdown() {
+            const select = document.getElementById('presetSelect');
+            const presets = getPresets();
+            select.innerHTML = '<option value="">-- Select or create --</option>';
+
+            Object.entries(presets).forEach(([id, preset]) => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = preset.name;
+                select.appendChild(option);
+            });
+
+            if (currentPresetId) {
+                select.value = currentPresetId;
+            }
+
+            updatePresetButtons();
+        }
+
+        function updatePresetButtons() {
+            const hasSelection = currentPresetId !== null;
+            document.getElementById('renamePresetBtn').classList.toggle('hidden', !hasSelection);
+            document.getElementById('deletePresetBtn').classList.toggle('hidden', !hasSelection);
+        }
+
+        function showAutoSaveIndicator() {
+            const indicator = document.getElementById('autoSaveIndicator');
+            indicator.classList.remove('hidden');
+            setTimeout(() => indicator.classList.add('hidden'), 1500);
+        }
+
+        function autoSavePreset() {
+            if (!currentPresetId) return;
+
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                const presets = getPresets();
+                if (presets[currentPresetId]) {
+                    presets[currentPresetId].values = getCurrentValues();
+                    savePresets(presets);
+                    showAutoSaveIndicator();
+                }
+            }, 500);
+        }
+
+        function createNewPreset() {
+            const name = prompt('Enter app name:');
+            if (!name || !name.trim()) return;
+
+            const id = 'preset_' + Date.now();
+            const presets = getPresets();
+            presets[id] = {
+                name: name.trim(),
+                values: getCurrentValues()
+            };
+            savePresets(presets);
+            currentPresetId = id;
+            renderPresetDropdown();
+            showAutoSaveIndicator();
+        }
+
+        function renamePreset() {
+            if (!currentPresetId) return;
+
+            const presets = getPresets();
+            const currentName = presets[currentPresetId]?.name || '';
+            const newName = prompt('Enter new name:', currentName);
+
+            if (!newName || !newName.trim()) return;
+
+            presets[currentPresetId].name = newName.trim();
+            savePresets(presets);
+            renderPresetDropdown();
+        }
+
+        function deletePreset() {
+            if (!currentPresetId) return;
+
+            const presets = getPresets();
+            const name = presets[currentPresetId]?.name || 'this preset';
+
+            if (!confirm('Delete "' + name + '"?')) return;
+
+            delete presets[currentPresetId];
+            savePresets(presets);
+            currentPresetId = null;
+            renderPresetDropdown();
+        }
+
+        function onPresetChange(e) {
+            const id = e.target.value;
+            if (!id) {
+                currentPresetId = null;
+                updatePresetButtons();
+                return;
+            }
+
+            const presets = getPresets();
+            if (presets[id]) {
+                currentPresetId = id;
+                loadPresetValues(presets[id].values);
+                updatePresetButtons();
+            }
+        }
 
         function getValue(id) { return parseFloat(document.getElementById(id).value) || 0; }
 
-        function setAppleTax(rate) {
+        function setAppleTax(rate, shouldAutoSave = true) {
             appleTax = rate;
             document.getElementById('tax15').className = rate === 0.15 ? 'flex-1 py-2 px-3 rounded bg-blue-600 hover:bg-blue-500 transition' : 'flex-1 py-2 px-3 rounded bg-gray-600 hover:bg-gray-500 transition';
             document.getElementById('tax30').className = rate === 0.30 ? 'flex-1 py-2 px-3 rounded bg-blue-600 hover:bg-blue-500 transition' : 'flex-1 py-2 px-3 rounded bg-gray-600 hover:bg-gray-500 transition';
             document.getElementById('taxMultiplier').textContent = ((1 - appleTax) * 100).toFixed(0) + '%';
             calculate();
+            if (shouldAutoSave) autoSavePreset();
         }
 
         function formatCurrency(val) { return '$' + val.toFixed(2); }
@@ -179,7 +349,6 @@
             document.getElementById('netArpu').textContent = formatCurrency(netArpu);
             document.getElementById('revenuePerDay').textContent = formatCurrency(revenuePerDay);
 
-            // Base timeframes (shown by default)
             const baseTimeframes = [
                 { label: 'Day 1 (spend)', days: 1 },
                 { label: 'Day ' + trialLength + ' (trial ends)', days: trialLength },
@@ -191,7 +360,6 @@
                 { label: 'Week 12', days: 84 }
             ];
 
-            // Extended timeframes (hidden by default)
             const extendedTimeframes = [
                 { label: 'Week 16', days: 112 },
                 { label: 'Week 20', days: 140 },
@@ -252,7 +420,6 @@
                 document.getElementById('paybackSummary').className = 'text-lg font-bold text-red-400';
             }
 
-            // Cohort Table
             let cohortHtml = '', cohortHtmlExtended = '', cumCohortRev = 0;
             const initialWeeklySubs = conversionsPerDay * weeklySplit;
             let activeWeeklySubs = initialWeeklySubs;
@@ -286,11 +453,23 @@
             document.getElementById('cohortTableExtended').innerHTML = cohortHtmlExtended;
         }
 
-        document.querySelectorAll('input').forEach(input => input.addEventListener('input', calculate));
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => {
+                calculate();
+                autoSavePreset();
+            });
+        });
         document.getElementById('tax15').addEventListener('click', () => setAppleTax(0.15));
         document.getElementById('tax30').addEventListener('click', () => setAppleTax(0.30));
         document.getElementById('toggleWeeks').addEventListener('click', toggleExtendedWeeks);
         document.getElementById('toggleRoasWeeks').addEventListener('click', toggleExtendedRoas);
+
+        document.getElementById('presetSelect').addEventListener('change', onPresetChange);
+        document.getElementById('newPresetBtn').addEventListener('click', createNewPreset);
+        document.getElementById('renamePresetBtn').addEventListener('click', renamePreset);
+        document.getElementById('deletePresetBtn').addEventListener('click', deletePreset);
+
+        renderPresetDropdown();
         calculate();
     </script>
 </body>
