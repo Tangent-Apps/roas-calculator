@@ -137,6 +137,7 @@
         let saveTimeout = null;
 
         const STORAGE_KEY = 'roas_calculator_presets';
+        const LAST_PRESET_KEY = 'roas_calculator_last_preset';
 
         function getPresets() {
             const data = localStorage.getItem(STORAGE_KEY);
@@ -167,19 +168,19 @@
         }
 
         function loadPresetValues(values) {
-            document.getElementById('dailySpend').value = values.dailySpend || 1000;
-            document.getElementById('cpa').value = values.cpa || 5;
-            document.getElementById('trialLength').value = values.trialLength || 7;
-            document.getElementById('ttpRate').value = values.ttpRate || 10;
-            document.getElementById('weeklyPrice').value = values.weeklyPrice || 4.99;
-            document.getElementById('weeklySplit').value = values.weeklySplit || 25;
-            document.getElementById('monthlyPrice').value = values.monthlyPrice || 9.99;
-            document.getElementById('monthlySplit').value = values.monthlySplit || 25;
-            document.getElementById('annualPrice').value = values.annualPrice || 29.99;
-            document.getElementById('annualSplit').value = values.annualSplit || 35;
-            document.getElementById('lifetimePrice').value = values.lifetimePrice || 79.99;
-            document.getElementById('lifetimeSplit').value = values.lifetimeSplit || 15;
-            document.getElementById('weeklyChurn').value = values.weeklyChurn || 15;
+            document.getElementById('dailySpend').value = values.dailySpend ?? 1000;
+            document.getElementById('cpa').value = values.cpa ?? 5;
+            document.getElementById('trialLength').value = values.trialLength ?? 7;
+            document.getElementById('ttpRate').value = values.ttpRate ?? 10;
+            document.getElementById('weeklyPrice').value = values.weeklyPrice ?? 4.99;
+            document.getElementById('weeklySplit').value = values.weeklySplit ?? 25;
+            document.getElementById('monthlyPrice').value = values.monthlyPrice ?? 9.99;
+            document.getElementById('monthlySplit').value = values.monthlySplit ?? 25;
+            document.getElementById('annualPrice').value = values.annualPrice ?? 29.99;
+            document.getElementById('annualSplit').value = values.annualSplit ?? 35;
+            document.getElementById('lifetimePrice').value = values.lifetimePrice ?? 79.99;
+            document.getElementById('lifetimeSplit').value = values.lifetimeSplit ?? 15;
+            document.getElementById('weeklyChurn').value = values.weeklyChurn ?? 15;
             if (values.appleTax !== undefined) {
                 setAppleTax(values.appleTax, false);
             }
@@ -243,6 +244,7 @@
             };
             savePresets(presets);
             currentPresetId = id;
+            localStorage.setItem(LAST_PRESET_KEY, id);
             renderPresetDropdown();
             showAutoSaveIndicator();
         }
@@ -272,6 +274,7 @@
             delete presets[currentPresetId];
             savePresets(presets);
             currentPresetId = null;
+            localStorage.removeItem(LAST_PRESET_KEY);
             renderPresetDropdown();
         }
 
@@ -286,6 +289,7 @@
             const presets = getPresets();
             if (presets[id]) {
                 currentPresetId = id;
+                localStorage.setItem(LAST_PRESET_KEY, id);
                 loadPresetValues(presets[id].values);
                 updatePresetButtons();
             }
@@ -470,7 +474,23 @@
         document.getElementById('deletePresetBtn').addEventListener('click', deletePreset);
 
         renderPresetDropdown();
-        calculate();
+
+        // Auto-load last used preset on page refresh
+        const lastPresetId = localStorage.getItem(LAST_PRESET_KEY);
+        if (lastPresetId) {
+            const presets = getPresets();
+            if (presets[lastPresetId]) {
+                currentPresetId = lastPresetId;
+                document.getElementById('presetSelect').value = lastPresetId;
+                loadPresetValues(presets[lastPresetId].values);
+                updatePresetButtons();
+            } else {
+                localStorage.removeItem(LAST_PRESET_KEY);
+                calculate();
+            }
+        } else {
+            calculate();
+        }
     </script>
 </body>
 </html>
