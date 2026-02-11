@@ -139,9 +139,26 @@
         const STORAGE_KEY = 'roas_calculator_presets';
         const LAST_PRESET_KEY = 'roas_calculator_last_preset';
 
+        const DEFAULT_PRESETS = {
+            "preset_girl_walk": {
+                "name": "Girl Walk",
+                "values": {"dailySpend":150,"cpa":5,"trialLength":3,"ttpRate":10,"weeklyPrice":4.99,"weeklySplit":0,"monthlyPrice":9.99,"monthlySplit":0,"annualPrice":59.99,"annualSplit":100,"lifetimePrice":79.99,"lifetimeSplit":0,"weeklyChurn":20,"appleTax":0.15}
+            },
+            "preset_cdt": {
+                "name": "CDT",
+                "values": {"dailySpend":100,"cpa":10,"trialLength":3,"ttpRate":30,"weeklyPrice":5.99,"weeklySplit":90,"monthlyPrice":9.99,"monthlySplit":0,"annualPrice":49.99,"annualSplit":10,"lifetimePrice":79.99,"lifetimeSplit":0,"weeklyChurn":20,"appleTax":0.15}
+            },
+            "preset_girltalk": {
+                "name": "GirlTalk",
+                "values": {"dailySpend":100,"cpa":15,"trialLength":3,"ttpRate":20,"weeklyPrice":4.99,"weeklySplit":90,"monthlyPrice":9.99,"monthlySplit":0,"annualPrice":49.99,"annualSplit":10,"lifetimePrice":79.99,"lifetimeSplit":0,"weeklyChurn":20,"appleTax":0.15}
+            }
+        };
+
         function getPresets() {
             const data = localStorage.getItem(STORAGE_KEY);
-            return data ? JSON.parse(data) : {};
+            const saved = data ? JSON.parse(data) : {};
+            // Merge defaults with saved — saved values override defaults
+            return Object.assign({}, DEFAULT_PRESETS, saved);
         }
 
         function savePresets(presets) {
