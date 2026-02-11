@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ROAS & Payback Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <style>
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -24,7 +26,7 @@
             <button id="newPresetBtn" class="px-3 py-2 bg-green-600 hover:bg-green-500 rounded text-sm transition">+ New</button>
             <button id="renamePresetBtn" class="px-3 py-2 bg-yellow-600 hover:bg-yellow-500 rounded text-sm transition hidden">Rename</button>
             <button id="deletePresetBtn" class="px-3 py-2 bg-red-600 hover:bg-red-500 rounded text-sm transition hidden">Delete</button>
-            <span id="autoSaveIndicator" class="text-xs text-green-400 ml-auto hidden">✓ Auto-saved</span>
+            <span id="autoSaveIndicator" class="text-xs text-green-400 ml-auto hidden">✓ Synced for everyone</span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -130,13 +132,23 @@
     </div>
 
     <script>
+        // Firebase setup
+        firebase.initializeApp({
+            apiKey: "AIzaSyAUbd2tNYPy7ylqxH43-YzIliuGgIv4gRE",
+            authDomain: "roas-calculator-78776.firebaseapp.com",
+            projectId: "roas-calculator-78776",
+            storageBucket: "roas-calculator-78776.firebasestorage.app",
+            messagingSenderId: "172260532187",
+            appId: "1:172260532187:web:45e2d3ede92be118df91fe"
+        });
+        const db = firebase.firestore();
+
         let appleTax = 0.30;
         let showExtendedWeeks = false;
         let showExtendedRoas = false;
         let currentPresetId = null;
         let saveTimeout = null;
 
-        const STORAGE_KEY = 'roas_calculator_presets';
         const LAST_PRESET_KEY = 'roas_calculator_last_preset';
 
         const DEFAULT_PRESETS = {
@@ -154,15 +166,18 @@
             }
         };
 
+        // In-memory cache of presets (loaded from Firestore on init)
+        let cachedPresets = Object.assign({}, DEFAULT_PRESETS);
+
         function getPresets() {
-            const data = localStorage.getItem(STORAGE_KEY);
-            const saved = data ? JSON.parse(data) : {};
-            // Merge defaults with saved — saved values override defaults
-            return Object.assign({}, DEFAULT_PRESETS, saved);
+            return cachedPresets;
         }
 
         function savePresets(presets) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
+            cachedPresets = presets;
+            // Persist to Firestore so everyone sees changes
+            db.collection('config').doc('presets').set({ data: presets })
+                .catch(err => console.error('Firestore save error:', err));
         }
 
         function getCurrentValues() {
@@ -490,24 +505,46 @@
         document.getElementById('renamePresetBtn').addEventListener('click', renamePreset);
         document.getElementById('deletePresetBtn').addEventListener('click', deletePreset);
 
-        renderPresetDropdown();
+        // Load presets from Firestore, then render
+        db.collection('config').doc('presets').get().then(doc => {
+            if (doc.exists && doc.data().data) {
+                cachedPresets = Object.assign({}, DEFAULT_PRESETS, doc.data().data);
+            }
+        }).catch(err => {
+            console.warn('Firestore load failed, using defaults:', err);
+        }).finally(() => {
+            renderPresetDropdown();
 
-        // Auto-load last used preset on page refresh
-        const lastPresetId = localStorage.getItem(LAST_PRESET_KEY);
-        if (lastPresetId) {
-            const presets = getPresets();
-            if (presets[lastPresetId]) {
-                currentPresetId = lastPresetId;
-                document.getElementById('presetSelect').value = lastPresetId;
-                loadPresetValues(presets[lastPresetId].values);
-                updatePresetButtons();
+            // Auto-load last used preset (per-user, stored locally)
+            const lastPresetId = localStorage.getItem(LAST_PRESET_KEY);
+            if (lastPresetId) {
+                const presets = getPresets();
+                if (presets[lastPresetId]) {
+                    currentPresetId = lastPresetId;
+                    document.getElementById('presetSelect').value = lastPresetId;
+                    loadPresetValues(presets[lastPresetId].values);
+                    updatePresetButtons();
+                } else {
+                    localStorage.removeItem(LAST_PRESET_KEY);
+                    calculate();
+                }
             } else {
-                localStorage.removeItem(LAST_PRESET_KEY);
                 calculate();
             }
-        } else {
-            calculate();
-        }
+        });
+
+        // Real-time sync: when anyone saves a preset, all browsers update
+        db.collection('config').doc('presets').onSnapshot(doc => {
+            if (doc.exists && doc.data().data) {
+                const saved = doc.data().data;
+                cachedPresets = Object.assign({}, DEFAULT_PRESETS, saved);
+                renderPresetDropdown();
+                // Refresh current preset values if one is selected
+                if (currentPresetId && cachedPresets[currentPresetId]) {
+                    loadPresetValues(cachedPresets[currentPresetId].values);
+                }
+            }
+        });
     </script>
 </body>
 </html>
