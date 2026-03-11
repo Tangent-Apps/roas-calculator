@@ -118,8 +118,12 @@
                         <input type="number" id="dailySpend" value="1000" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="cpa">Cost Per Action / CPA ($)</label>
-                        <input type="number" id="cpa" value="5" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="ecpi">Effective Cost Per Install / eCPI ($)</label>
+                        <input type="number" id="ecpi" value="2.00" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="installToTrialRate">Installs to Trial (%)</label>
+                        <input type="number" id="installToTrialRate" value="50" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="trialLength">Trial Length (days)</label>
@@ -198,8 +202,12 @@
         <div class="bg-gray-800 rounded-lg p-5 mb-6">
             <h2 class="text-base font-semibold mb-5 text-gray-100 section-header">Results</h2>
 
-            <!-- 6-card stat grid including payback -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+            <!-- 7-card stat grid including payback -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-6">
+                <div class="stat-card bg-gray-700 rounded-lg p-4">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Installs/Day</p>
+                    <p id="installsPerDay" class="text-2xl font-bold num">500</p>
+                </div>
                 <div class="stat-card bg-gray-700 rounded-lg p-4">
                     <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Trials/Day</p>
                     <p id="trialsPerDay" class="text-2xl font-bold num">200</p>
@@ -302,15 +310,15 @@
         const DEFAULT_PRESETS = {
             "preset_girl_walk": {
                 "name": "Girl Walk",
-                "values": {"dailySpend":150,"cpa":5,"trialLength":3,"ttpRate":10,"weeklyPrice":4.99,"weeklySplit":0,"monthlyPrice":9.99,"monthlySplit":0,"annualPrice":59.99,"annualSplit":100,"lifetimePrice":79.99,"lifetimeSplit":0,"weeklyChurn":20,"appleTax":0.15}
+                "values": {"dailySpend":150,"ecpi":2.50,"installToTrialRate":50,"trialLength":3,"ttpRate":10,"weeklyPrice":4.99,"weeklySplit":0,"monthlyPrice":9.99,"monthlySplit":0,"annualPrice":59.99,"annualSplit":100,"lifetimePrice":79.99,"lifetimeSplit":0,"weeklyChurn":20,"appleTax":0.15}
             },
             "preset_cdt": {
                 "name": "CDT",
-                "values": {"dailySpend":100,"cpa":10,"trialLength":3,"ttpRate":30,"weeklyPrice":5.99,"weeklySplit":90,"monthlyPrice":9.99,"monthlySplit":0,"annualPrice":49.99,"annualSplit":10,"lifetimePrice":79.99,"lifetimeSplit":0,"weeklyChurn":20,"appleTax":0.15}
+                "values": {"dailySpend":100,"ecpi":5.00,"installToTrialRate":50,"trialLength":3,"ttpRate":30,"weeklyPrice":5.99,"weeklySplit":90,"monthlyPrice":9.99,"monthlySplit":0,"annualPrice":49.99,"annualSplit":10,"lifetimePrice":79.99,"lifetimeSplit":0,"weeklyChurn":20,"appleTax":0.15}
             },
             "preset_girltalk": {
                 "name": "GirlTalk",
-                "values": {"dailySpend":100,"cpa":15,"trialLength":3,"ttpRate":20,"weeklyPrice":4.99,"weeklySplit":90,"monthlyPrice":9.99,"monthlySplit":0,"annualPrice":49.99,"annualSplit":10,"lifetimePrice":79.99,"lifetimeSplit":0,"weeklyChurn":20,"appleTax":0.15}
+                "values": {"dailySpend":100,"ecpi":5.00,"installToTrialRate":33,"trialLength":3,"ttpRate":20,"weeklyPrice":4.99,"weeklySplit":90,"monthlyPrice":9.99,"monthlySplit":0,"annualPrice":49.99,"annualSplit":10,"lifetimePrice":79.99,"lifetimeSplit":0,"weeklyChurn":20,"appleTax":0.15}
             }
         };
 
@@ -329,7 +337,7 @@
 
         function getCurrentValues() {
             return {
-                dailySpend: getValue('dailySpend'), cpa: getValue('cpa'),
+                dailySpend: getValue('dailySpend'), ecpi: getValue('ecpi'), installToTrialRate: getValue('installToTrialRate'),
                 trialLength: getValue('trialLength'), ttpRate: getValue('ttpRate'),
                 weeklyPrice: getValue('weeklyPrice'), weeklySplit: getValue('weeklySplit'),
                 monthlyPrice: getValue('monthlyPrice'), monthlySplit: getValue('monthlySplit'),
@@ -341,7 +349,8 @@
 
         function loadPresetValues(values) {
             document.getElementById('dailySpend').value = values.dailySpend ?? 1000;
-            document.getElementById('cpa').value = values.cpa ?? 5;
+            document.getElementById('ecpi').value = values.ecpi ?? 2;
+            document.getElementById('installToTrialRate').value = values.installToTrialRate ?? 50;
             document.getElementById('trialLength').value = values.trialLength ?? 7;
             document.getElementById('ttpRate').value = values.ttpRate ?? 10;
             document.getElementById('weeklyPrice').value = values.weeklyPrice ?? 4.99;
@@ -781,7 +790,7 @@
         // ─── Main calculate ───────────────────────────────────────────────────────
 
         function calculate() {
-            const dailySpend = getValue('dailySpend'), cpa = getValue('cpa'), trialLength = getValue('trialLength'), ttpRate = getValue('ttpRate') / 100;
+            const dailySpend = getValue('dailySpend'), trialLength = getValue('trialLength'), ttpRate = getValue('ttpRate') / 100;
             const weeklyPrice = getValue('weeklyPrice'), monthlyPrice = getValue('monthlyPrice'), annualPrice = getValue('annualPrice'), lifetimePrice = getValue('lifetimePrice');
             const weeklySplit = getValue('weeklySplit') / 100, monthlySplit = getValue('monthlySplit') / 100, annualSplit = getValue('annualSplit') / 100, lifetimeSplit = getValue('lifetimeSplit') / 100;
             const weeklyChurn = getValue('weeklyChurn') / 100;
@@ -790,13 +799,16 @@
             const totalSplit = weeklySplit + monthlySplit + annualSplit + lifetimeSplit;
             document.getElementById('splitWarning').classList.toggle('hidden', Math.abs(totalSplit - 1) < 0.01);
 
-            const trialsPerDay = cpa > 0 ? dailySpend / cpa : 0, conversionsPerDay = trialsPerDay * ttpRate;
+            const ecpi = getValue('ecpi'), installToTrialRate = getValue('installToTrialRate') / 100;
+            const installsPerDay = ecpi > 0 ? dailySpend / ecpi : 0;
+            const trialsPerDay = installsPerDay * installToTrialRate, conversionsPerDay = trialsPerDay * ttpRate;
             const blendedArpu = (weeklyPrice * weeklySplit) + (monthlyPrice * monthlySplit) + (annualPrice * annualSplit) + (lifetimePrice * lifetimeSplit);
             const netMultiplier = 1 - appleTax, netArpu = blendedArpu * netMultiplier;
             const netWeeklyPrice = weeklyPrice * netMultiplier;
             const netMonthlyPrice = monthlyPrice * netMultiplier;
             const revenuePerDay = conversionsPerDay * netArpu;
 
+            document.getElementById('installsPerDay').textContent = installsPerDay.toFixed(0);
             document.getElementById('trialsPerDay').textContent = trialsPerDay.toFixed(0);
             document.getElementById('conversionsPerDay').textContent = conversionsPerDay.toFixed(1);
             document.getElementById('blendedArpu').textContent = formatCurrency(blendedArpu);
