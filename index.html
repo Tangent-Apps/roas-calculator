@@ -127,9 +127,13 @@
                         <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="ecpi">eCPI ($)</label>
                         <input type="number" id="ecpi" value="2.00" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
-                    <div>
+                    <div id="installToTrialRow">
                         <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="installToTrialRate">Installs to Trial (%)</label>
                         <input type="number" id="installToTrialRate" value="50" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div id="installToPaidRow" class="hidden">
+                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="installToPaidRate">Install to Paid (%)</label>
+                        <input type="number" id="installToPaidRate" value="20" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div id="trialLengthRow">
                         <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="trialLength">Trial Length (days)</label>
@@ -350,6 +354,7 @@
                 monthlyPrice: getValue('monthlyPrice'), monthlySplit: getValue('monthlySplit'),
                 annualPrice: getValue('annualPrice'), annualSplit: getValue('annualSplit'),
                 lifetimePrice: getValue('lifetimePrice'), lifetimeSplit: getValue('lifetimeSplit'),
+                installToPaidRate: getValue('installToPaidRate'),
                 weeklyChurn: getValue('weeklyChurn'), appleTax: appleTax,
                 noTrial: noTrial
             };
@@ -370,6 +375,7 @@
             document.getElementById('lifetimePrice').value = values.lifetimePrice ?? 79.99;
             document.getElementById('lifetimeSplit').value = values.lifetimeSplit ?? 15;
             document.getElementById('weeklyChurn').value = values.weeklyChurn ?? 15;
+            document.getElementById('installToPaidRate').value = values.installToPaidRate ?? 20;
             if (values.appleTax !== undefined) setAppleTax(values.appleTax, false);
             setTrialMode(values.noTrial ?? false);
             calculate();
@@ -489,9 +495,10 @@
             noTrial = isNoTrial;
             document.getElementById('modeWithTrial').className = (isNoTrial ? 'bg-gray-600 hover:bg-gray-500' : 'bg-blue-600 hover:bg-blue-500') + ' px-3 py-1.5 rounded text-xs transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800';
             document.getElementById('modeNoTrial').className   = (isNoTrial ? 'bg-blue-600 hover:bg-blue-500' : 'bg-gray-600 hover:bg-gray-500') + ' px-3 py-1.5 rounded text-xs transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800';
+            document.getElementById('installToTrialRow').classList.toggle('hidden', isNoTrial);
+            document.getElementById('installToPaidRow').classList.toggle('hidden', !isNoTrial);
             document.getElementById('trialLengthRow').classList.toggle('hidden', isNoTrial);
             document.getElementById('ttpRateRow').classList.toggle('hidden', isNoTrial);
-            document.querySelector('label[for="installToTrialRate"]').textContent = isNoTrial ? 'INSTALL TO PAID (%)' : 'INSTALLS TO TRIAL (%)';
             document.getElementById('trialsPerDayCard').classList.toggle('hidden', isNoTrial);
             const grid = document.getElementById('statCardsGrid');
             grid.classList.toggle('lg:grid-cols-7', !isNoTrial);
@@ -824,11 +831,10 @@
             document.getElementById('splitWarning').classList.toggle('hidden', Math.abs(totalSplit - 1) < 0.01);
 
             const ecpi = getValue('ecpi');
-            const installConvRate = getValue('installToTrialRate') / 100;
             const installsPerDay = ecpi > 0 ? dailySpend / ecpi : 0;
-            const trialsPerDay = noTrial ? 0 : installsPerDay * installConvRate;
+            const trialsPerDay = noTrial ? 0 : installsPerDay * (getValue('installToTrialRate') / 100);
             const conversionsPerDay = noTrial
-                ? installsPerDay * installConvRate
+                ? installsPerDay * (getValue('installToPaidRate') / 100)
                 : trialsPerDay * ttpRate;
             const blendedArpu = (weeklyPrice * weeklySplit) + (monthlyPrice * monthlySplit) + (annualPrice * annualSplit) + (lifetimePrice * lifetimeSplit);
             const netMultiplier = 1 - appleTax, netArpu = blendedArpu * netMultiplier;
