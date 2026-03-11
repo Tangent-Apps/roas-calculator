@@ -11,6 +11,40 @@
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type="number"] { -moz-appearance: textfield; }
+
+        .chart-tooltip {
+            position: fixed;
+            background: #0f172a;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #f1f5f9;
+            pointer-events: none;
+            z-index: 200;
+            white-space: nowrap;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            font-variant-numeric: tabular-nums;
+            display: none;
+            line-height: 1.7;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .chart-tooltip .tt-label {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 4px;
+            letter-spacing: 0.01em;
+        }
+        .chart-tooltip .tt-row {
+            color: #94a3b8;
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+        }
+        .chart-tooltip .tt-row span {
+            color: #f1f5f9;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen p-6">
@@ -84,6 +118,13 @@
                 <div class="bg-gray-700 rounded p-3"><p class="text-xs text-gray-400">Net ARPU (after Apple)</p><p id="netArpu" class="text-xl font-bold">$17.15</p></div>
                 <div class="bg-gray-700 rounded p-3"><p class="text-xs text-gray-400">Revenue/Day (at conversion)</p><p id="revenuePerDay" class="text-xl font-bold">$490</p></div>
             </div>
+
+            <!-- ROAS Chart -->
+            <div class="mb-6">
+                <p class="text-xs text-gray-500 mb-3 uppercase tracking-wider" style="letter-spacing:0.08em">ROAS curve — hover to inspect</p>
+                <div id="roasChartContainer" style="width:100%;min-height:240px"></div>
+            </div>
+
             <h3 class="text-sm font-semibold mb-3 text-gray-300">ROAS by Timeframe (100% = Break Even)</h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
@@ -112,6 +153,13 @@
         <div class="bg-gray-800 rounded-lg p-5">
             <h2 class="text-lg font-semibold mb-4 text-orange-400">Weekly Cohort Revenue Curve</h2>
             <p class="text-xs text-gray-400 mb-3">Shows how a single day's cohort generates revenue over time (weekly subscribers renew)</p>
+
+            <!-- Cohort Chart -->
+            <div class="mb-6">
+                <p class="text-xs text-gray-500 mb-3 uppercase tracking-wider" style="letter-spacing:0.08em">Cumulative revenue per cohort — hover to inspect</p>
+                <div id="cohortChartContainer" style="width:100%;min-height:220px"></div>
+            </div>
+
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
@@ -130,6 +178,10 @@
             <button id="toggleWeeks" class="mt-4 text-sm text-blue-400 hover:text-blue-300 transition">See more (weeks 13-24) ▼</button>
         </div>
     </div>
+
+    <!-- Chart Tooltips -->
+    <div id="roasTooltip" class="chart-tooltip"></div>
+    <div id="cohortTooltip" class="chart-tooltip"></div>
 
     <script>
         // Firebase setup
@@ -166,36 +218,25 @@
             }
         };
 
-        // In-memory cache of presets (loaded from Firestore on init)
         let cachedPresets = Object.assign({}, DEFAULT_PRESETS);
 
-        function getPresets() {
-            return cachedPresets;
-        }
+        function getPresets() { return cachedPresets; }
 
         function savePresets(presets) {
             cachedPresets = presets;
-            // Persist to Firestore so everyone sees changes
             db.collection('config').doc('presets').set({ data: presets })
                 .catch(err => console.error('Firestore save error:', err));
         }
 
         function getCurrentValues() {
             return {
-                dailySpend: getValue('dailySpend'),
-                cpa: getValue('cpa'),
-                trialLength: getValue('trialLength'),
-                ttpRate: getValue('ttpRate'),
-                weeklyPrice: getValue('weeklyPrice'),
-                weeklySplit: getValue('weeklySplit'),
-                monthlyPrice: getValue('monthlyPrice'),
-                monthlySplit: getValue('monthlySplit'),
-                annualPrice: getValue('annualPrice'),
-                annualSplit: getValue('annualSplit'),
-                lifetimePrice: getValue('lifetimePrice'),
-                lifetimeSplit: getValue('lifetimeSplit'),
-                weeklyChurn: getValue('weeklyChurn'),
-                appleTax: appleTax
+                dailySpend: getValue('dailySpend'), cpa: getValue('cpa'),
+                trialLength: getValue('trialLength'), ttpRate: getValue('ttpRate'),
+                weeklyPrice: getValue('weeklyPrice'), weeklySplit: getValue('weeklySplit'),
+                monthlyPrice: getValue('monthlyPrice'), monthlySplit: getValue('monthlySplit'),
+                annualPrice: getValue('annualPrice'), annualSplit: getValue('annualSplit'),
+                lifetimePrice: getValue('lifetimePrice'), lifetimeSplit: getValue('lifetimeSplit'),
+                weeklyChurn: getValue('weeklyChurn'), appleTax: appleTax
             };
         }
 
@@ -213,9 +254,7 @@
             document.getElementById('lifetimePrice').value = values.lifetimePrice ?? 79.99;
             document.getElementById('lifetimeSplit').value = values.lifetimeSplit ?? 15;
             document.getElementById('weeklyChurn').value = values.weeklyChurn ?? 15;
-            if (values.appleTax !== undefined) {
-                setAppleTax(values.appleTax, false);
-            }
+            if (values.appleTax !== undefined) setAppleTax(values.appleTax, false);
             calculate();
         }
 
@@ -223,18 +262,13 @@
             const select = document.getElementById('presetSelect');
             const presets = getPresets();
             select.innerHTML = '<option value="">-- Select or create --</option>';
-
             Object.entries(presets).forEach(([id, preset]) => {
                 const option = document.createElement('option');
                 option.value = id;
                 option.textContent = preset.name;
                 select.appendChild(option);
             });
-
-            if (currentPresetId) {
-                select.value = currentPresetId;
-            }
-
+            if (currentPresetId) select.value = currentPresetId;
             updatePresetButtons();
         }
 
@@ -252,7 +286,6 @@
 
         function autoSavePreset() {
             if (!currentPresetId) return;
-
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(() => {
                 const presets = getPresets();
@@ -267,13 +300,9 @@
         function createNewPreset() {
             const name = prompt('Enter app name:');
             if (!name || !name.trim()) return;
-
             const id = 'preset_' + Date.now();
             const presets = getPresets();
-            presets[id] = {
-                name: name.trim(),
-                values: getCurrentValues()
-            };
+            presets[id] = { name: name.trim(), values: getCurrentValues() };
             savePresets(presets);
             currentPresetId = id;
             localStorage.setItem(LAST_PRESET_KEY, id);
@@ -283,13 +312,10 @@
 
         function renamePreset() {
             if (!currentPresetId) return;
-
             const presets = getPresets();
             const currentName = presets[currentPresetId]?.name || '';
             const newName = prompt('Enter new name:', currentName);
-
             if (!newName || !newName.trim()) return;
-
             presets[currentPresetId].name = newName.trim();
             savePresets(presets);
             renderPresetDropdown();
@@ -297,12 +323,9 @@
 
         function deletePreset() {
             if (!currentPresetId) return;
-
             const presets = getPresets();
             const name = presets[currentPresetId]?.name || 'this preset';
-
             if (!confirm('Delete "' + name + '"?')) return;
-
             delete presets[currentPresetId];
             savePresets(presets);
             currentPresetId = null;
@@ -312,12 +335,7 @@
 
         function onPresetChange(e) {
             const id = e.target.value;
-            if (!id) {
-                currentPresetId = null;
-                updatePresetButtons();
-                return;
-            }
-
+            if (!id) { currentPresetId = null; updatePresetButtons(); return; }
             const presets = getPresets();
             if (presets[id]) {
                 currentPresetId = id;
@@ -363,11 +381,281 @@
             document.getElementById('toggleRoasWeeks').textContent = showExtendedRoas ? 'See less ▲' : 'See more (weeks 16-24) ▼';
         }
 
+        // ─── Chart helpers ────────────────────────────────────────────────────────
+
+        function buildColoredSegments(pts) {
+            if (pts.length < 2) return [];
+            const segments = [];
+            let current = { color: pts[0].roas >= 100 ? 'green' : 'red', points: [pts[0]] };
+            for (let i = 1; i < pts.length; i++) {
+                const p1 = pts[i - 1], p2 = pts[i];
+                const above1 = p1.roas >= 100, above2 = p2.roas >= 100;
+                if (above1 !== above2) {
+                    const t = (100 - p1.roas) / (p2.roas - p1.roas);
+                    const inter = { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y), roas: 100 };
+                    current.points.push(inter);
+                    segments.push(current);
+                    current = { color: above2 ? 'green' : 'red', points: [inter, p2] };
+                } else {
+                    current.points.push(p2);
+                }
+            }
+            segments.push(current);
+            return segments;
+        }
+
+        function fmtK(val) {
+            if (val >= 1000000) return '$' + (val / 1000000).toFixed(1) + 'M';
+            if (val >= 1000) return '$' + (val / 1000).toFixed(val % 1000 === 0 ? 0 : 1) + 'k';
+            return '$' + val.toFixed(0);
+        }
+
+        function drawRoasChart(results) {
+            const container = document.getElementById('roasChartContainer');
+            const tooltip = document.getElementById('roasTooltip');
+            if (!container || results.length < 2) return;
+
+            const W = container.clientWidth || 660;
+            const H = 240;
+            const pad = { top: 20, right: 88, bottom: 56, left: 58 };
+            const cW = W - pad.left - pad.right;
+            const cH = H - pad.top - pad.bottom;
+            const n = results.length;
+
+            const maxRoas = Math.max(150, ...results.map(r => r.roas));
+            const yMax = Math.ceil(maxRoas / 50) * 50;
+            const yBase = pad.top + cH;
+
+            const toX = i => pad.left + (n > 1 ? (i / (n - 1)) * cW : cW / 2);
+            const toY = v => pad.top + cH - Math.min(v / yMax, 1.05) * cH;
+
+            const pts = results.map((r, i) => ({
+                x: toX(i), y: Math.max(pad.top - 4, toY(r.roas)),
+                roas: r.roas, label: r.label,
+                totalRevenue: r.totalRevenue, cumSpend: r.cumSpend, grossMargin: r.grossMargin
+            }));
+
+            const y100 = toY(100);
+            const segments = buildColoredSegments(pts);
+
+            // Shorten x-axis labels
+            const shortLabel = l => l.replace(' (spend)', '').replace(' (trial ends)', '').replace(' (first revenue)', ' ↑').replace('Week ', 'W');
+
+            let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" style="display:block;font-family:system-ui,-apple-system,sans-serif;overflow:visible">
+            <defs>
+                <clipPath id="rc"><rect x="${pad.left}" y="${pad.top - 4}" width="${cW}" height="${cH + 8}"/></clipPath>
+                <linearGradient id="rgG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#22c55e" stop-opacity="0.14"/><stop offset="100%" stop-color="#22c55e" stop-opacity="0"/></linearGradient>
+                <linearGradient id="rgR" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ef4444" stop-opacity="0.1"/><stop offset="100%" stop-color="#ef4444" stop-opacity="0"/></linearGradient>
+            </defs>`;
+
+            // Y grid + labels
+            for (let v = 0; v <= yMax; v += 50) {
+                const y = toY(v);
+                svg += `<line x1="${pad.left}" x2="${pad.left + cW}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+                svg += `<text x="${pad.left - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#4b5563">${v}%</text>`;
+            }
+
+            // Break-even dashed line
+            if (y100 > pad.top && y100 < yBase) {
+                svg += `<line x1="${pad.left}" x2="${pad.left + cW}" y1="${y100}" y2="${y100}" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="4,3"/>`;
+                svg += `<text x="${pad.left + cW + 6}" y="${y100 + 4}" font-size="9" fill="rgba(255,255,255,0.28)" letter-spacing="0.07em">BREAK EVEN</text>`;
+            }
+
+            // Area fill (color based on final ROAS)
+            const finalRoas = pts[pts.length - 1].roas;
+            const areaFill = finalRoas >= 100 ? 'url(#rgG)' : 'url(#rgR)';
+            let areaPath = `M ${pts[0].x} ${yBase}` + pts.map(p => ` L ${p.x} ${p.y}`).join('') + ` L ${pts[n-1].x} ${yBase} Z`;
+            svg += `<path d="${areaPath}" fill="${areaFill}" clip-path="url(#rc)"/>`;
+
+            // Colored line segments
+            segments.forEach(seg => {
+                const color = seg.color === 'green' ? '#22c55e' : '#f87171';
+                const d = seg.points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+                svg += `<path d="${d}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" clip-path="url(#rc)"/>`;
+            });
+
+            // Data point dots
+            pts.forEach(p => {
+                const c = p.roas >= 100 ? '#22c55e' : '#f87171';
+                svg += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${c}" stroke="#1f2937" stroke-width="2" clip-path="url(#rc)"/>`;
+            });
+
+            // X axis labels (rotated)
+            pts.forEach((p, i) => {
+                const lbl = shortLabel(results[i].label);
+                svg += `<text transform="rotate(-35,${p.x.toFixed(1)},${yBase + 14})" x="${p.x.toFixed(1)}" y="${yBase + 14}" text-anchor="end" font-size="10" fill="#4b5563">${lbl}</text>`;
+            });
+
+            // Hover zones
+            pts.forEach((p, i) => {
+                const prevX = i > 0 ? pts[i-1].x : p.x;
+                const nextX = i < n-1 ? pts[i+1].x : p.x;
+                const zl = (p.x - prevX) / 2, zr = (nextX - p.x) / 2;
+                svg += `<rect x="${(p.x - zl).toFixed(1)}" y="${pad.top}" width="${(zl + zr).toFixed(1)}" height="${cH}" fill="transparent" class="roas-hz" data-i="${i}" style="cursor:crosshair"/>`;
+            });
+
+            // Crosshair + hover dot (hidden initially)
+            svg += `<line id="rCH" x1="0" x2="0" y1="${pad.top}" y2="${yBase}" stroke="rgba(255,255,255,0.12)" stroke-width="1" display="none"/>`;
+            svg += `<circle id="rHD" cx="0" cy="0" r="5.5" fill="white" stroke="#111827" stroke-width="2.5" display="none"/>`;
+            svg += '</svg>';
+
+            container.innerHTML = svg;
+
+            container.querySelectorAll('.roas-hz').forEach(z => {
+                z.addEventListener('mouseenter', () => {
+                    const i = +z.dataset.i, p = pts[i], r = results[i];
+                    const ch = container.querySelector('#rCH'), hd = container.querySelector('#rHD');
+                    ch.setAttribute('x1', p.x); ch.setAttribute('x2', p.x); ch.removeAttribute('display');
+                    hd.setAttribute('cx', p.x); hd.setAttribute('cy', p.y);
+                    hd.setAttribute('fill', p.roas >= 100 ? '#22c55e' : '#f87171');
+                    hd.removeAttribute('display');
+                    const roasColor = p.roas >= 100 ? '#22c55e' : '#f87171';
+                    const marginSign = r.grossMargin >= 0 ? '+' : '-';
+                    const marginColor = r.grossMargin >= 0 ? '#22c55e' : '#f87171';
+                    tooltip.innerHTML = `
+                        <div class="tt-label" style="color:${roasColor}">${r.label}</div>
+                        <div class="tt-row">ROAS <span style="color:${roasColor}">${p.roas.toFixed(1)}%</span></div>
+                        <div class="tt-row">Revenue <span>${fmtK(r.totalRevenue)}</span></div>
+                        <div class="tt-row">Spend <span>${fmtK(r.cumSpend)}</span></div>
+                        <div class="tt-row">Margin <span style="color:${marginColor}">${marginSign}${fmtK(Math.abs(r.grossMargin))}</span></div>`;
+                    tooltip.style.display = 'block';
+                });
+                z.addEventListener('mousemove', e => {
+                    tooltip.style.left = (e.clientX + 18) + 'px';
+                    tooltip.style.top = (e.clientY - 12) + 'px';
+                });
+                z.addEventListener('mouseleave', () => {
+                    tooltip.style.display = 'none';
+                    container.querySelector('#rCH').setAttribute('display', 'none');
+                    container.querySelector('#rHD').setAttribute('display', 'none');
+                });
+            });
+        }
+
+        function drawCohortChart(cohortData, dailySpend) {
+            const container = document.getElementById('cohortChartContainer');
+            const tooltip = document.getElementById('cohortTooltip');
+            if (!container || cohortData.length < 2) return;
+
+            const W = container.clientWidth || 660;
+            const H = 220;
+            const pad = { top: 20, right: 88, bottom: 48, left: 64 };
+            const cW = W - pad.left - pad.right;
+            const cH = H - pad.top - pad.bottom;
+            const n = cohortData.length;
+            const yBase = pad.top + cH;
+
+            const maxRev = Math.max(1, ...cohortData.map(d => d.cumCohortRev));
+            // Nice tick interval
+            const rawTick = maxRev / 4;
+            const mag = Math.pow(10, Math.floor(Math.log10(rawTick || 1)));
+            const niceOpts = [1, 2, 2.5, 5, 10].map(v => v * mag);
+            const tickInt = niceOpts.find(v => Math.ceil(maxRev / v) <= 6) || mag * 10;
+            const yMax = Math.ceil(maxRev / tickInt) * tickInt || tickInt;
+
+            const toX = i => pad.left + (n > 1 ? (i / (n - 1)) * cW : cW / 2);
+            const toY = v => pad.top + cH - Math.min(v / yMax, 1.02) * cH;
+
+            const pts = cohortData.map((d, i) => ({
+                x: toX(i), y: Math.max(pad.top - 2, toY(d.cumCohortRev)), ...d
+            }));
+
+            const yBreak = toY(dailySpend);
+            const finalRoas = cohortData[n - 1].cohortRoas;
+            const lineColor = finalRoas >= 100 ? '#22c55e' : '#38bdf8';
+            const gradId = 'cgrd';
+
+            let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" style="display:block;font-family:system-ui,-apple-system,sans-serif;overflow:visible">
+            <defs>
+                <clipPath id="cc"><rect x="${pad.left}" y="${pad.top - 4}" width="${cW}" height="${cH + 8}"/></clipPath>
+                <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.18"/>
+                    <stop offset="100%" stop-color="${lineColor}" stop-opacity="0.01"/>
+                </linearGradient>
+            </defs>`;
+
+            // Y grid + labels
+            for (let v = 0; v <= yMax + 0.001; v += tickInt) {
+                const y = toY(v);
+                svg += `<line x1="${pad.left}" x2="${pad.left + cW}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+                svg += `<text x="${pad.left - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#4b5563">${fmtK(v)}</text>`;
+            }
+
+            // Break-even line (revenue = daily spend = 100% ROAS)
+            if (yBreak > pad.top && yBreak < yBase) {
+                svg += `<line x1="${pad.left}" x2="${pad.left + cW}" y1="${yBreak}" y2="${yBreak}" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="4,3"/>`;
+                svg += `<text x="${pad.left + cW + 6}" y="${yBreak + 4}" font-size="9" fill="rgba(255,255,255,0.28)" letter-spacing="0.07em">BREAK EVEN</text>`;
+            }
+
+            // Area fill
+            let areaPath = `M ${pts[0].x} ${yBase}` + pts.map(p => ` L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join('') + ` L ${pts[n-1].x} ${yBase} Z`;
+            svg += `<path d="${areaPath}" fill="url(#${gradId})" clip-path="url(#cc)"/>`;
+
+            // Line
+            const linePath = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+            svg += `<path d="${linePath}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" clip-path="url(#cc)"/>`;
+
+            // Dots every 4 weeks + last
+            pts.forEach((p, i) => {
+                if (i % 4 === 0 || i === n - 1) {
+                    svg += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${lineColor}" stroke="#1f2937" stroke-width="2" clip-path="url(#cc)"/>`;
+                }
+            });
+
+            // X axis labels every 4 weeks
+            pts.forEach((p, i) => {
+                if (i % 4 === 0 || i === n - 1) {
+                    svg += `<text x="${p.x.toFixed(1)}" y="${yBase + 16}" text-anchor="middle" font-size="10" fill="#4b5563">W${i}</text>`;
+                }
+            });
+
+            // Hover zones (full-width bands per week)
+            const bw = cW / n;
+            pts.forEach((p, i) => {
+                svg += `<rect x="${(pad.left + i * bw).toFixed(1)}" y="${pad.top}" width="${bw.toFixed(1)}" height="${cH}" fill="transparent" class="cohort-hz" data-i="${i}" style="cursor:crosshair"/>`;
+            });
+
+            svg += `<line id="cCH" x1="0" x2="0" y1="${pad.top}" y2="${yBase}" stroke="rgba(255,255,255,0.12)" stroke-width="1" display="none"/>`;
+            svg += `<circle id="cHD" cx="0" cy="0" r="5.5" fill="white" stroke="#111827" stroke-width="2.5" display="none"/>`;
+            svg += '</svg>';
+
+            container.innerHTML = svg;
+
+            container.querySelectorAll('.cohort-hz').forEach(z => {
+                z.addEventListener('mouseenter', () => {
+                    const i = +z.dataset.i, p = pts[i], d = cohortData[i];
+                    const ch = container.querySelector('#cCH'), hd = container.querySelector('#cHD');
+                    ch.setAttribute('x1', p.x); ch.setAttribute('x2', p.x); ch.removeAttribute('display');
+                    hd.setAttribute('cx', p.x); hd.setAttribute('cy', p.y); hd.removeAttribute('display');
+                    const rc = d.cohortRoas >= 100 ? '#22c55e' : '#f87171';
+                    tooltip.innerHTML = `
+                        <div class="tt-label">Week ${d.week}</div>
+                        <div class="tt-row">Cum. Revenue <span>${fmtK(d.cumCohortRev)}</span></div>
+                        <div class="tt-row">This Week <span>${fmtK(d.weekRevenue)}</span></div>
+                        <div class="tt-row">ROAS <span style="color:${rc}">${d.cohortRoas.toFixed(1)}%</span></div>`;
+                    tooltip.style.display = 'block';
+                });
+                z.addEventListener('mousemove', e => {
+                    tooltip.style.left = (e.clientX + 18) + 'px';
+                    tooltip.style.top = (e.clientY - 12) + 'px';
+                });
+                z.addEventListener('mouseleave', () => {
+                    tooltip.style.display = 'none';
+                    container.querySelector('#cCH').setAttribute('display', 'none');
+                    container.querySelector('#cHD').setAttribute('display', 'none');
+                });
+            });
+        }
+
+        // ─── Main calculate ───────────────────────────────────────────────────────
+
         function calculate() {
             const dailySpend = getValue('dailySpend'), cpa = getValue('cpa'), trialLength = getValue('trialLength'), ttpRate = getValue('ttpRate') / 100;
             const weeklyPrice = getValue('weeklyPrice'), monthlyPrice = getValue('monthlyPrice'), annualPrice = getValue('annualPrice'), lifetimePrice = getValue('lifetimePrice');
             const weeklySplit = getValue('weeklySplit') / 100, monthlySplit = getValue('monthlySplit') / 100, annualSplit = getValue('annualSplit') / 100, lifetimeSplit = getValue('lifetimeSplit') / 100;
             const weeklyChurn = getValue('weeklyChurn') / 100;
+            // Monthly churn derived from weekly churn (compound math: 30/7 weeks per month)
+            const monthlyChurnRate = 1 - Math.pow(1 - weeklyChurn, 30 / 7);
 
             const totalSplit = weeklySplit + monthlySplit + annualSplit + lifetimeSplit;
             document.getElementById('splitWarning').classList.toggle('hidden', Math.abs(totalSplit - 1) < 0.01);
@@ -413,14 +701,18 @@
                 for (let cohortDay = 1; cohortDay <= Math.min(tf.days, tf.days - trialLength); cohortDay++) {
                     const daysSinceConversion = tf.days - trialLength - cohortDay + 1;
                     if (daysSinceConversion > 0) {
+                        // Weekly renewals with churn
                         const renewalWeeks = Math.floor(daysSinceConversion / 7);
                         const initialWeeklySubsForCohort = conversionsPerDay * weeklySplit;
                         for (let r = 1; r <= renewalWeeks; r++) {
                             weeklyRenewalRevenue += initialWeeklySubsForCohort * Math.pow(1 - weeklyChurn, r) * netWeeklyPrice;
                         }
+                        // Monthly renewals with churn (FIXED: was missing churn)
                         const renewalMonths = Math.floor(daysSinceConversion / 30);
                         const initialMonthlySubsForCohort = conversionsPerDay * monthlySplit;
-                        monthlyRenewalRevenue += initialMonthlySubsForCohort * renewalMonths * netMonthlyPrice;
+                        for (let r = 1; r <= renewalMonths; r++) {
+                            monthlyRenewalRevenue += initialMonthlySubsForCohort * Math.pow(1 - monthlyChurnRate, r) * netMonthlyPrice;
+                        }
                     }
                 }
 
@@ -432,15 +724,18 @@
             }
 
             let roasHtml = '', roasHtmlExtended = '', paybackDay = null;
+            const allRoasData = [];
 
             baseTimeframes.forEach(tf => {
                 const result = calculateRoasRow(tf);
+                allRoasData.push(result);
                 if (result.roas >= 100 && paybackDay === null) paybackDay = result.days;
                 roasHtml += '<tr class="border-b border-gray-700"><td class="py-2">' + result.label + '</td><td class="py-2 font-mono ' + (result.roas >= 100 ? 'text-green-400' : 'text-red-400') + '">' + formatPercent(result.roas) + '</td><td class="py-2">' + getStatusBadge(result.roas) + '</td><td class="py-2 font-mono">' + formatCurrency(result.totalRevenue) + '</td><td class="py-2 font-mono">' + formatCurrency(result.cumSpend) + '</td><td class="py-2 font-mono">' + formatMargin(result.grossMargin) + '</td></tr>';
             });
 
             extendedTimeframes.forEach(tf => {
                 const result = calculateRoasRow(tf);
+                allRoasData.push(result);
                 if (result.roas >= 100 && paybackDay === null) paybackDay = result.days;
                 roasHtmlExtended += '<tr class="border-b border-gray-700"><td class="py-2">' + result.label + '</td><td class="py-2 font-mono ' + (result.roas >= 100 ? 'text-green-400' : 'text-red-400') + '">' + formatPercent(result.roas) + '</td><td class="py-2">' + getStatusBadge(result.roas) + '</td><td class="py-2 font-mono">' + formatCurrency(result.totalRevenue) + '</td><td class="py-2 font-mono">' + formatCurrency(result.cumSpend) + '</td><td class="py-2 font-mono">' + formatMargin(result.grossMargin) + '</td></tr>';
             });
@@ -456,9 +751,14 @@
                 document.getElementById('paybackSummary').className = 'text-lg font-bold text-red-400';
             }
 
+            // Draw ROAS chart
+            drawRoasChart(allRoasData);
+
+            // Cohort table + chart
             let cohortHtml = '', cohortHtmlExtended = '', cumCohortRev = 0;
             const initialWeeklySubs = conversionsPerDay * weeklySplit;
             let activeWeeklySubs = initialWeeklySubs;
+            const cohortData = [];
 
             for (let week = 0; week <= 24; week++) {
                 let weekRevenue = 0;
@@ -475,31 +775,35 @@
 
                 cumCohortRev += weekRevenue;
                 const cohortRoas = dailySpend > 0 ? (cumCohortRev / dailySpend) * 100 : 0;
+                cohortData.push({ week, weekRevenue, cumCohortRev, cohortRoas });
 
                 const rowHtml = '<tr class="border-b border-gray-700"><td class="py-2">Week ' + week + '</td><td class="py-2 font-mono">' + (week === 0 ? '-' : activeWeeklySubs.toFixed(1)) + '</td><td class="py-2 font-mono">' + formatCurrency(weekRevenue) + '</td><td class="py-2 font-mono">' + formatCurrency(cumCohortRev) + '</td><td class="py-2 font-mono ' + (cohortRoas >= 100 ? 'text-green-400' : 'text-red-400') + '">' + formatPercent(cohortRoas) + '</td></tr>';
 
-                if (week <= 12) {
-                    cohortHtml += rowHtml;
-                } else {
-                    cohortHtmlExtended += rowHtml;
-                }
+                if (week <= 12) cohortHtml += rowHtml;
+                else cohortHtmlExtended += rowHtml;
             }
 
             document.getElementById('cohortTable').innerHTML = cohortHtml;
             document.getElementById('cohortTableExtended').innerHTML = cohortHtmlExtended;
+
+            // Draw cohort chart
+            drawCohortChart(cohortData, dailySpend);
         }
 
+        // Redraw charts on resize
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(calculate, 120);
+        });
+
         document.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', () => {
-                calculate();
-                autoSavePreset();
-            });
+            input.addEventListener('input', () => { calculate(); autoSavePreset(); });
         });
         document.getElementById('tax15').addEventListener('click', () => setAppleTax(0.15));
         document.getElementById('tax30').addEventListener('click', () => setAppleTax(0.30));
         document.getElementById('toggleWeeks').addEventListener('click', toggleExtendedWeeks);
         document.getElementById('toggleRoasWeeks').addEventListener('click', toggleExtendedRoas);
-
         document.getElementById('presetSelect').addEventListener('change', onPresetChange);
         document.getElementById('newPresetBtn').addEventListener('click', createNewPreset);
         document.getElementById('renamePresetBtn').addEventListener('click', renamePreset);
@@ -514,8 +818,6 @@
             console.warn('Firestore load failed, using defaults:', err);
         }).finally(() => {
             renderPresetDropdown();
-
-            // Auto-load last used preset (per-user, stored locally)
             const lastPresetId = localStorage.getItem(LAST_PRESET_KEY);
             if (lastPresetId) {
                 const presets = getPresets();
@@ -533,13 +835,11 @@
             }
         });
 
-        // Real-time sync: when anyone saves a preset, all browsers update
+        // Real-time sync
         db.collection('config').doc('presets').onSnapshot(doc => {
             if (doc.exists && doc.data().data) {
-                const saved = doc.data().data;
-                cachedPresets = Object.assign({}, DEFAULT_PRESETS, saved);
+                cachedPresets = Object.assign({}, DEFAULT_PRESETS, doc.data().data);
                 renderPresetDropdown();
-                // Refresh current preset values if one is selected
                 if (currentPresetId && cachedPresets[currentPresetId]) {
                     loadPresetValues(cachedPresets[currentPresetId].values);
                 }
