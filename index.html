@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ROAS & Payback Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <style>
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -99,7 +97,7 @@
                 <button id="newPresetBtn" class="px-3 py-3 bg-blue-600 hover:bg-blue-500 rounded text-sm transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800">+ New</button>
                 <button id="renamePresetBtn" class="px-3 py-3 bg-gray-600 hover:bg-gray-500 rounded text-sm transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800 hidden">Rename</button>
                 <button id="deletePresetBtn" class="px-3 py-3 bg-red-700 hover:bg-red-600 rounded text-sm transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800 hidden">Delete</button>
-                <span id="autoSaveIndicator" class="text-xs text-green-400 ml-auto">✓ Synced</span>
+                <span id="autoSaveIndicator" class="text-xs text-green-400 ml-auto">✓ Saved</span>
             </div>
             <!-- Inline edit (New / Rename) -->
             <div id="presetInlineEdit" class="flex-wrap items-center gap-3">
@@ -245,6 +243,7 @@
                             <th class="pb-2 px-2 font-medium text-right">Revenue</th>
                             <th class="pb-2 px-2 font-medium text-right">Spend</th>
                             <th class="pb-2 px-2 font-medium text-right">Margin</th>
+                            <th class="pb-2 px-2 font-medium text-right">Gross Margin %</th>
                         </tr>
                     </thead>
                     <tbody id="roasTable" class="text-gray-300"></tbody>
@@ -289,16 +288,7 @@
     <div id="cohortTooltip" class="chart-tooltip"></div>
 
     <script>
-        // Firebase setup
-        firebase.initializeApp({
-            apiKey: "AIzaSyAUbd2tNYPy7ylqxH43-YzIliuGgIv4gRE",
-            authDomain: "roas-calculator-78776.firebaseapp.com",
-            projectId: "roas-calculator-78776",
-            storageBucket: "roas-calculator-78776.firebasestorage.app",
-            messagingSenderId: "172260532187",
-            appId: "1:172260532187:web:45e2d3ede92be118df91fe"
-        });
-        const db = firebase.firestore();
+        const PRESETS_STORAGE_KEY = 'roas_calculator_presets';
 
         let appleTax = 0.30;
         let showExtendedWeeks = false;
@@ -330,8 +320,11 @@
 
         function savePresets(presets) {
             cachedPresets = presets;
-            db.collection('config').doc('presets').set({ data: presets })
-                .catch(err => console.error('Firestore save error:', err));
+            try {
+                localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(presets));
+            } catch(err) {
+                console.error('Save error:', err);
+            }
         }
 
         function getCurrentValues() {
@@ -853,7 +846,8 @@
                 const totalRevenue = cumRevenue + weeklyRenewalRevenue + monthlyRenewalRevenue;
                 const grossMargin = totalRevenue - cumSpend;
                 const roas = cumSpend > 0 ? (totalRevenue / cumSpend) * 100 : 0;
-                return { totalRevenue, cumSpend, grossMargin, roas, days: tf.days, label: tf.label };
+                const grossMarginPct = totalRevenue > 0 ? (grossMargin / totalRevenue) * 100 : 0;
+                return { totalRevenue, cumSpend, grossMargin, grossMarginPct, roas, days: tf.days, label: tf.label };
             }
 
             let roasHtml = '', roasHtmlExtended = '', paybackDay = null;
@@ -868,6 +862,7 @@
                     <td class="py-2 px-2 num font-mono text-right">${formatCurrency(result.totalRevenue)}</td>
                     <td class="py-2 px-2 num font-mono text-right">${formatCurrency(result.cumSpend)}</td>
                     <td class="py-2 px-2 text-right">${formatMargin(result.grossMargin)}</td>
+                    <td class="py-2 px-2 num font-mono text-right ${result.grossMarginPct >= 0 ? 'text-green-400' : 'text-red-400'}">${result.grossMarginPct >= 0 ? '+' : ''}${result.grossMarginPct.toFixed(1)}%</td>
                 </tr>`;
             };
 
@@ -967,42 +962,32 @@
             if (e.key === 'Escape') hideInlineEdit();
         });
 
-        // Load presets from Firestore
-        db.collection('config').doc('presets').get().then(doc => {
-            if (doc.exists && doc.data().data) {
-                cachedPresets = Object.assign({}, DEFAULT_PRESETS, doc.data().data);
+        // Load presets from localStorage
+        try {
+            const saved = localStorage.getItem(PRESETS_STORAGE_KEY);
+            if (saved) {
+                cachedPresets = Object.assign({}, DEFAULT_PRESETS, JSON.parse(saved));
             }
-        }).catch(err => {
-            console.warn('Firestore load failed, using defaults:', err);
-        }).finally(() => {
-            renderPresetDropdown();
-            const lastPresetId = localStorage.getItem(LAST_PRESET_KEY);
-            if (lastPresetId) {
-                const presets = getPresets();
-                if (presets[lastPresetId]) {
-                    currentPresetId = lastPresetId;
-                    document.getElementById('presetSelect').value = lastPresetId;
-                    loadPresetValues(presets[lastPresetId].values);
-                    updatePresetButtons();
-                } else {
-                    localStorage.removeItem(LAST_PRESET_KEY);
-                    calculate();
-                }
+        } catch(err) {
+            console.warn('Could not load saved presets, using defaults:', err);
+        }
+
+        renderPresetDropdown();
+        const lastPresetId = localStorage.getItem(LAST_PRESET_KEY);
+        if (lastPresetId) {
+            const presets = getPresets();
+            if (presets[lastPresetId]) {
+                currentPresetId = lastPresetId;
+                document.getElementById('presetSelect').value = lastPresetId;
+                loadPresetValues(presets[lastPresetId].values);
+                updatePresetButtons();
             } else {
+                localStorage.removeItem(LAST_PRESET_KEY);
                 calculate();
             }
-        });
-
-        // Real-time sync
-        db.collection('config').doc('presets').onSnapshot(doc => {
-            if (doc.exists && doc.data().data) {
-                cachedPresets = Object.assign({}, DEFAULT_PRESETS, doc.data().data);
-                renderPresetDropdown();
-                if (currentPresetId && cachedPresets[currentPresetId]) {
-                    loadPresetValues(cachedPresets[currentPresetId].values);
-                }
-            }
-        });
+        } else {
+            calculate();
+        }
     </script>
 </body>
 </html>
