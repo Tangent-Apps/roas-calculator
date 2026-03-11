@@ -517,11 +517,14 @@
             if (shouldAutoSave) autoSavePreset();
         }
 
-        function formatCurrency(val) { return '$' + val.toFixed(2); }
+        function formatNum(val, decimals = 0) {
+            return val.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        }
+        function formatCurrency(val) { return '$' + formatNum(val, 2); }
         function formatPercent(val) { return val.toFixed(1) + '%'; }
         function formatMargin(val) {
-            if (val >= 0) return '<span class="text-green-400 num">+$' + val.toFixed(2) + '</span>';
-            return '<span class="text-red-400 num">−$' + Math.abs(val).toFixed(2) + '</span>';
+            if (val >= 0) return '<span class="text-green-400 num">+$' + formatNum(val, 2) + '</span>';
+            return '<span class="text-red-400 num">−$' + formatNum(Math.abs(val), 2) + '</span>';
         }
 
         function getStatusBadge(roas) {
@@ -842,9 +845,9 @@
             const netMonthlyPrice = monthlyPrice * netMultiplier;
             const revenuePerDay = conversionsPerDay * netArpu;
 
-            document.getElementById('installsPerDay').textContent = installsPerDay.toFixed(0);
-            document.getElementById('trialsPerDay').textContent = trialsPerDay.toFixed(0);
-            document.getElementById('conversionsPerDay').textContent = conversionsPerDay.toFixed(1);
+            document.getElementById('installsPerDay').textContent = formatNum(installsPerDay);
+            document.getElementById('trialsPerDay').textContent = formatNum(trialsPerDay);
+            document.getElementById('conversionsPerDay').textContent = formatNum(conversionsPerDay, 1);
             document.getElementById('blendedArpu').textContent = formatCurrency(blendedArpu);
             document.getElementById('netArpu').textContent = formatCurrency(netArpu);
             document.getElementById('revenuePerDay').textContent = formatCurrency(revenuePerDay);
@@ -968,7 +971,7 @@
                 const roasColor = cohortRoas >= 100 ? 'text-green-400' : 'text-red-400';
                 const rowHtml = `<tr class="data-row border-b border-gray-700/60">
                     <td class="py-2 px-2">Week ${week}</td>
-                    <td class="py-2 px-2 num font-mono text-right">${week === 0 ? '—' : activeWeeklySubs.toFixed(1)}</td>
+                    <td class="py-2 px-2 num font-mono text-right">${week === 0 ? '—' : formatNum(activeWeeklySubs, 1)}</td>
                     <td class="py-2 px-2 num font-mono text-right">${formatCurrency(weekRevenue)}</td>
                     <td class="py-2 px-2 num font-mono text-right">${formatCurrency(cumCohortRev)}</td>
                     <td class="py-2 px-2 num font-mono text-right ${roasColor}">${formatPercent(cohortRoas)}</td>
