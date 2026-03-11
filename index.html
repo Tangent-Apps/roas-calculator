@@ -862,7 +862,7 @@
                     <td class="py-2 px-2 num font-mono text-right">${formatCurrency(result.totalRevenue)}</td>
                     <td class="py-2 px-2 num font-mono text-right">${formatCurrency(result.cumSpend)}</td>
                     <td class="py-2 px-2 text-right">${formatMargin(result.grossMargin)}</td>
-                    <td class="py-2 px-2 num font-mono text-right ${result.grossMarginPct >= 0 ? 'text-green-400' : 'text-red-400'}">${result.grossMarginPct >= 0 ? '+' : ''}${result.grossMarginPct.toFixed(1)}%</td>
+                    <td class="py-2 px-2 num font-mono text-right ${result.totalRevenue === 0 ? 'text-gray-500' : result.grossMarginPct >= 0 ? 'text-green-400' : 'text-red-400'}">${result.totalRevenue === 0 ? '—' : (result.grossMarginPct >= 0 ? '+' : '') + result.grossMarginPct.toFixed(1) + '%'}</td>
                 </tr>`;
             };
 
