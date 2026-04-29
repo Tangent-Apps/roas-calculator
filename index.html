@@ -9,1038 +9,1015 @@
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type="number"] { -moz-appearance: textfield; }
-
-        /* Tabular numbers for all data values */
         .num { font-variant-numeric: tabular-nums; }
-
-        /* Section headers: clean left-border style */
-        .section-header {
-            border-left: 2px solid #3b82f6;
-            padding-left: 12px;
-        }
-
-        /* Stat card hover: subtle top accent */
-        .stat-card {
-            border-top: 2px solid transparent;
-            transition: border-color 150ms ease;
-        }
+        .section-header { border-left: 2px solid #3b82f6; padding-left: 12px; }
+        .stat-card { border-top: 2px solid transparent; transition: border-color 150ms ease; }
         .stat-card:hover { border-color: #3b82f6; }
-
-        /* Auto-save indicator fade */
-        #autoSaveIndicator {
-            opacity: 0;
-            transition: opacity 200ms ease;
-            pointer-events: none;
+        #autoSaveIndicatorA, #autoSaveIndicatorB {
+            opacity: 0; transition: opacity 200ms ease; pointer-events: none;
         }
-        #autoSaveIndicator.visible { opacity: 1; }
-
-        /* Table row hover */
+        #autoSaveIndicatorA.visible, #autoSaveIndicatorB.visible { opacity: 1; }
         .data-row { transition: background-color 100ms ease; }
         .data-row:hover { background-color: rgba(55, 65, 81, 0.5); }
-
-        /* Chart tooltips */
         .chart-tooltip {
-            position: fixed;
-            background: #0f172a;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 12px;
-            color: #f1f5f9;
-            pointer-events: none;
-            z-index: 200;
-            white-space: nowrap;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-            font-variant-numeric: tabular-nums;
-            display: none;
-            line-height: 1.7;
-            font-family: system-ui, -apple-system, sans-serif;
+            position: fixed; background: #0f172a; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #f1f5f9;
+            pointer-events: none; z-index: 200; white-space: nowrap;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6); font-variant-numeric: tabular-nums;
+            display: none; line-height: 1.7; font-family: system-ui, -apple-system, sans-serif;
         }
-        .chart-tooltip .tt-label {
-            font-weight: 600;
-            font-size: 13px;
-            margin-bottom: 4px;
-            letter-spacing: 0.01em;
-        }
-        .chart-tooltip .tt-row {
-            color: #94a3b8;
-            display: flex;
-            gap: 16px;
-            justify-content: space-between;
-        }
+        .chart-tooltip .tt-label { font-weight: 600; font-size: 13px; margin-bottom: 4px; letter-spacing: 0.01em; }
+        .chart-tooltip .tt-row { color: #94a3b8; display: flex; gap: 16px; justify-content: space-between; }
         .chart-tooltip .tt-row span { color: #f1f5f9; font-weight: 600; }
-
-        /* Chart containers */
         .chart-wrap { width: 100%; touch-action: manipulation; }
-
-        /* Inline preset edit area */
-        #presetInlineEdit { display: none; }
-        #presetInlineEdit.active { display: flex; }
-
+        #presetInlineEditA, #presetInlineEditB { display: none; }
+        #presetInlineEditA.active, #presetInlineEditB.active { display: flex; }
+        .col-a { color: #60a5fa; }
+        .col-b { color: #fbbf24; }
         @media (prefers-reduced-motion: reduce) {
-            .stat-card, .data-row, #autoSaveIndicator { transition: none; }
+            .stat-card, .data-row { transition: none; }
         }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen p-4 md:p-6">
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-2xl font-bold mb-4 tracking-tight">ROAS & Payback Calculator</h1>
+<div class="max-w-7xl mx-auto">
+    <h1 class="text-2xl font-bold mb-6 tracking-tight">ROAS & Payback Calculator</h1>
 
-        <!-- Preset Selector -->
-        <div class="bg-gray-800 rounded-lg p-4 mb-6">
-            <!-- Normal controls -->
-            <div id="presetNormal" class="flex flex-wrap items-center gap-3">
-                <label class="text-sm text-gray-400" for="presetSelect">App Preset:</label>
-                <select id="presetSelect" class="bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto md:min-w-[200px]">
-                    <option value="">— Select or create —</option>
-                </select>
-                <button id="newPresetBtn" class="px-3 py-3 bg-blue-600 hover:bg-blue-500 rounded text-sm transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800">+ New</button>
-                <button id="renamePresetBtn" class="px-3 py-3 bg-gray-600 hover:bg-gray-500 rounded text-sm transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800 hidden">Rename</button>
-                <button id="deletePresetBtn" class="px-3 py-3 bg-red-700 hover:bg-red-600 rounded text-sm transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800 hidden">Delete</button>
-                <span id="autoSaveIndicator" class="text-xs text-green-400 ml-auto">✓ Saved</span>
+    <!-- ══ TWO SCENARIO COLUMNS ══ -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+
+        <!-- ── SCENARIO A ── -->
+        <div class="space-y-4">
+            <div class="flex items-center gap-3 mb-1">
+                <span class="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0"></span>
+                <h2 class="text-lg font-bold text-blue-400">Scenario A</h2>
             </div>
-            <!-- Inline edit (New / Rename) -->
-            <div id="presetInlineEdit" class="flex-wrap items-center gap-3">
-                <span id="presetEditLabel" class="text-sm text-gray-400">App name:</span>
-                <input id="presetNameInput" type="text" placeholder="e.g. MyApp" class="bg-gray-700 rounded px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto md:min-w-[200px]" />
-                <button id="presetSaveBtn" class="px-3 py-3 bg-blue-600 hover:bg-blue-500 rounded text-sm transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800">Save</button>
-                <button id="presetCancelBtn" class="px-3 py-3 bg-gray-600 hover:bg-gray-500 rounded text-sm transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800">Cancel</button>
+
+            <!-- Preset A -->
+            <div class="bg-gray-800 rounded-lg p-3 border-l-2 border-blue-500">
+                <div id="presetNormalA" class="flex flex-wrap items-center gap-2">
+                    <label class="text-xs text-gray-400" for="presetSelectA">Preset:</label>
+                    <select id="presetSelectA" class="bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1 min-w-[140px]"></select>
+                    <button id="newPresetBtnA" class="px-2 py-2 bg-blue-600 hover:bg-blue-500 rounded text-xs transition-colors">+ New</button>
+                    <button id="renamePresetBtnA" class="px-2 py-2 bg-gray-600 hover:bg-gray-500 rounded text-xs transition-colors hidden">Rename</button>
+                    <button id="deletePresetBtnA" class="px-2 py-2 bg-red-700 hover:bg-red-600 rounded text-xs transition-colors hidden">Delete</button>
+                    <span id="autoSaveIndicatorA" class="text-xs text-green-400 ml-auto">✓ Saved</span>
+                </div>
+                <div id="presetInlineEditA" class="flex-wrap items-center gap-2">
+                    <span id="presetEditLabelA" class="text-xs text-gray-400">Name:</span>
+                    <input id="presetNameInputA" type="text" class="bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1 min-w-[120px]" />
+                    <button id="presetSaveBtnA" class="px-2 py-2 bg-blue-600 hover:bg-blue-500 rounded text-xs">Save</button>
+                    <button id="presetCancelBtnA" class="px-2 py-2 bg-gray-600 hover:bg-gray-500 rounded text-xs">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Inputs A -->
+            <div class="bg-gray-800 rounded-lg p-4 border-l-2 border-blue-500">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-semibold text-gray-100 section-header">Spend & Acquisition</h3>
+                    <div class="flex gap-1">
+                        <button id="modeWithTrialA" class="px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 text-xs transition-colors">With Trial</button>
+                        <button id="modeNoTrialA" class="px-2 py-1 rounded bg-gray-600 hover:bg-gray-500 text-xs transition-colors">No Trial</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider" for="dailySpendA">Daily Spend ($)</label>
+                        <input type="number" id="dailySpendA" value="1000" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider" for="ecpiA">eCPI ($)</label>
+                        <input type="number" id="ecpiA" value="2.00" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div id="installToTrialRowA">
+                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider" for="installToTrialRateA">Install→Trial (%)</label>
+                        <input type="number" id="installToTrialRateA" value="50" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div id="installToPaidRowA" class="hidden">
+                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider" for="installToPaidRateA">Install→Paid (%)</label>
+                        <input type="number" id="installToPaidRateA" value="20" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div id="trialLengthRowA">
+                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider" for="trialLengthA">Trial Length (days)</label>
+                        <input type="number" id="trialLengthA" value="7" inputmode="numeric" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div id="ttpRateRowA">
+                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider" for="ttpRateA">Trial→Paid (%)</label>
+                        <input type="number" id="ttpRateA" value="10" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Apple Tax</label>
+                    <div class="flex gap-2">
+                        <button id="tax15A" class="flex-1 py-2 rounded bg-gray-600 hover:bg-gray-500 text-xs transition-colors">15%</button>
+                        <button id="tax30A" class="flex-1 py-2 rounded bg-blue-600 hover:bg-blue-500 text-xs transition-colors">30%</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing A -->
+            <div class="bg-gray-800 rounded-lg p-4 border-l-2 border-blue-500">
+                <h3 class="text-sm font-semibold mb-3 text-gray-100 section-header">Pricing & Split</h3>
+                <div class="space-y-2">
+                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-400 uppercase tracking-wider px-1">
+                        <span>Price</span><span>% Users</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="relative"><span class="absolute left-2 top-2 text-xs text-gray-400">Wk</span><input type="number" id="weeklyPriceA" value="4.99" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded pl-8 pr-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                        <input type="number" id="weeklySplitA" value="25" inputmode="numeric" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="relative"><span class="absolute left-2 top-2 text-xs text-gray-400">Mo</span><input type="number" id="monthlyPriceA" value="9.99" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded pl-8 pr-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                        <input type="number" id="monthlySplitA" value="25" inputmode="numeric" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="relative"><span class="absolute left-2 top-2 text-xs text-gray-400">Yr</span><input type="number" id="annualPriceA" value="29.99" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded pl-8 pr-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                        <input type="number" id="annualSplitA" value="35" inputmode="numeric" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="relative"><span class="absolute left-2 top-2 text-xs text-gray-400">LT</span><input type="number" id="lifetimePriceA" value="79.99" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded pl-8 pr-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                        <input type="number" id="lifetimeSplitA" value="15" inputmode="numeric" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <p id="splitWarningA" class="text-xs text-yellow-400 hidden">⚠ Splits don't add to 100%</p>
+                </div>
+            </div>
+
+            <!-- Retention Curve A -->
+            <div class="bg-gray-800 rounded-lg p-4 border-l-2 border-blue-500">
+                <h3 class="text-sm font-semibold mb-1 text-gray-100 section-header">Subscription Retention</h3>
+                <p class="text-xs text-gray-500 mb-3 pl-3">Cumulative % still active after each month (from your dashboard)</p>
+                <div class="grid grid-cols-4 gap-2">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 text-center">M1 (%)</label>
+                        <input type="number" id="retM1A" value="53" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 text-center">M2 (%)</label>
+                        <input type="number" id="retM2A" value="47" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 text-center">M3 (%)</label>
+                        <input type="number" id="retM3A" value="32" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 text-center">M4 (%)</label>
+                        <input type="number" id="retM4A" value="36" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <p class="text-xs text-gray-600 mt-2">M4+ held constant at M4 period-over-period ratio</p>
+            </div>
+
+            <!-- Stat cards A -->
+            <div class="bg-gray-800 rounded-lg p-4 border-l-2 border-blue-500">
+                <h3 class="text-sm font-semibold mb-3 text-gray-100 section-header">Key Metrics</h3>
+                <div id="statCardsGridA" class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    <div class="stat-card bg-gray-700 rounded-lg px-2 py-2 flex flex-col">
+                        <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Installs/Day</p>
+                        <p id="installsPerDayA" class="text-base font-bold num">500</p>
+                    </div>
+                    <div id="trialsPerDayCardA" class="stat-card bg-gray-700 rounded-lg px-2 py-2 flex flex-col">
+                        <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Trials/Day</p>
+                        <p id="trialsPerDayA" class="text-base font-bold num">200</p>
+                    </div>
+                    <div class="stat-card bg-gray-700 rounded-lg px-2 py-2 flex flex-col">
+                        <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Converts/Day</p>
+                        <p id="conversionsPerDayA" class="text-base font-bold num">20</p>
+                    </div>
+                    <div class="stat-card bg-gray-700 rounded-lg px-2 py-2 flex flex-col">
+                        <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Gross ARPU</p>
+                        <p id="blendedArpuA" class="text-base font-bold num">$24.50</p>
+                    </div>
+                    <div class="stat-card bg-gray-700 rounded-lg px-2 py-2 flex flex-col">
+                        <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Net ARPU</p>
+                        <p id="netArpuA" class="text-base font-bold num">$17.15</p>
+                    </div>
+                    <div class="stat-card bg-gray-700 rounded-lg px-2 py-2 flex flex-col">
+                        <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Payback</p>
+                        <p id="paybackCardA" class="text-base font-bold text-green-400 num">—</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <!-- Spend & Acquisition -->
-            <div class="bg-gray-800 rounded-lg p-5">
-                <div class="flex items-center justify-between mb-4">
-                  <h2 class="text-base font-semibold text-gray-100 section-header">Spend & Acquisition</h2>
-                  <div class="flex gap-1">
-                    <button id="modeWithTrial" class="px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-xs transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800">With Trial</button>
-                    <button id="modeNoTrial"   class="px-3 py-1.5 rounded bg-gray-600 hover:bg-gray-500 text-xs transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800">No Trial</button>
-                  </div>
+        <!-- ── SCENARIO B ── -->
+        <div class="space-y-4">
+            <div class="flex items-center gap-3 mb-1">
+                <span class="w-3 h-3 rounded-full bg-amber-400 flex-shrink-0"></span>
+                <h2 class="text-lg font-bold text-amber-400">Scenario B</h2>
+            </div>
+
+            <!-- Preset B -->
+            <div class="bg-gray-800 rounded-lg p-3 border-l-2 border-amber-400">
+                <div id="presetNormalB" class="flex flex-wrap items-center gap-2">
+                    <label class="text-xs text-gray-400" for="presetSelectB">Preset:</label>
+                    <select id="presetSelectB" class="bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 flex-1 min-w-[140px]"></select>
+                    <button id="newPresetBtnB" class="px-2 py-2 bg-amber-600 hover:bg-amber-500 rounded text-xs transition-colors">+ New</button>
+                    <button id="renamePresetBtnB" class="px-2 py-2 bg-gray-600 hover:bg-gray-500 rounded text-xs transition-colors hidden">Rename</button>
+                    <button id="deletePresetBtnB" class="px-2 py-2 bg-red-700 hover:bg-red-600 rounded text-xs transition-colors hidden">Delete</button>
+                    <span id="autoSaveIndicatorB" class="text-xs text-green-400 ml-auto">✓ Saved</span>
                 </div>
-                <div class="space-y-4">
+                <div id="presetInlineEditB" class="flex-wrap items-center gap-2">
+                    <span id="presetEditLabelB" class="text-xs text-gray-400">Name:</span>
+                    <input id="presetNameInputB" type="text" class="bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 flex-1 min-w-[120px]" />
+                    <button id="presetSaveBtnB" class="px-2 py-2 bg-amber-600 hover:bg-amber-500 rounded text-xs">Save</button>
+                    <button id="presetCancelBtnB" class="px-2 py-2 bg-gray-600 hover:bg-gray-500 rounded text-xs">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Inputs B -->
+            <div class="bg-gray-800 rounded-lg p-4 border-l-2 border-amber-400">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-semibold text-gray-100 section-header">Spend & Acquisition</h3>
+                    <div class="flex gap-1">
+                        <button id="modeWithTrialB" class="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-xs transition-colors">With Trial</button>
+                        <button id="modeNoTrialB" class="px-2 py-1 rounded bg-gray-600 hover:bg-gray-500 text-xs transition-colors">No Trial</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="dailySpend">Daily Marketing Spend ($)</label>
-                        <input type="number" id="dailySpend" value="1000" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="ecpi">eCPI ($)</label>
-                        <input type="number" id="ecpi" value="2.00" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div id="installToTrialRow">
-                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="installToTrialRate">Installs to Trial (%)</label>
-                        <input type="number" id="installToTrialRate" value="50" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div id="installToPaidRow" class="hidden">
-                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="installToPaidRate">Install to Paid (%)</label>
-                        <input type="number" id="installToPaidRate" value="20" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div id="trialLengthRow">
-                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="trialLength">Trial Length (days)</label>
-                        <input type="number" id="trialLength" value="7" inputmode="numeric" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div id="ttpRateRow">
-                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="ttpRate">Trial to Paid Conversion (%)</label>
-                        <input type="number" id="ttpRate" value="10" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider">Apple Tax</label>
-                        <div class="flex gap-2">
-                            <button id="tax15" class="flex-1 py-3 px-3 rounded bg-gray-600 hover:bg-gray-500 transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800 text-sm">15%</button>
-                            <button id="tax30" class="flex-1 py-3 px-3 rounded bg-blue-600 hover:bg-blue-500 transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800 text-sm">30%</button>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-2">Net revenue = <span id="taxMultiplier">70%</span> of gross</p>
+                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider" for="dailySpendB">Daily Spend ($)</label>
+                        <input type="number" id="dailySpendB" value="1000" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="weeklyChurn">Weekly Churn Rate (%)</label>
-                        <input type="number" id="weeklyChurn" value="15" step="1" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <p class="text-xs text-gray-500 mt-1">% of weekly subs that cancel each week</p>
+                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider" for="ecpiB">eCPI ($)</label>
+                        <input type="number" id="ecpiB" value="2.00" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                    <div id="installToTrialRowB">
+                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider" for="installToTrialRateB">Install→Trial (%)</label>
+                        <input type="number" id="installToTrialRateB" value="50" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                    <div id="installToPaidRowB" class="hidden">
+                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider" for="installToPaidRateB">Install→Paid (%)</label>
+                        <input type="number" id="installToPaidRateB" value="20" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                    <div id="trialLengthRowB">
+                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider" for="trialLengthB">Trial Length (days)</label>
+                        <input type="number" id="trialLengthB" value="7" inputmode="numeric" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                    <div id="ttpRateRowB">
+                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider" for="ttpRateB">Trial→Paid (%)</label>
+                        <input type="number" id="ttpRateB" value="10" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Apple Tax</label>
+                    <div class="flex gap-2">
+                        <button id="tax15B" class="flex-1 py-2 rounded bg-gray-600 hover:bg-gray-500 text-xs transition-colors">15%</button>
+                        <button id="tax30B" class="flex-1 py-2 rounded bg-amber-600 hover:bg-amber-500 text-xs transition-colors">30%</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Pricing & Split -->
-            <div class="bg-gray-800 rounded-lg p-5">
-                <h2 class="text-base font-semibold mb-4 text-gray-100 section-header">Pricing & Split</h2>
-                <div class="space-y-3">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="weeklyPrice">Weekly ($)</label>
-                            <input type="number" id="weeklyPrice" value="4.99" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="weeklySplit">% of Users</label>
-                            <input type="number" id="weeklySplit" value="25" inputmode="numeric" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
+            <!-- Pricing B -->
+            <div class="bg-gray-800 rounded-lg p-4 border-l-2 border-amber-400">
+                <h3 class="text-sm font-semibold mb-3 text-gray-100 section-header">Pricing & Split</h3>
+                <div class="space-y-2">
+                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-400 uppercase tracking-wider px-1">
+                        <span>Price</span><span>% Users</span>
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="monthlyPrice">Monthly ($)</label>
-                            <input type="number" id="monthlyPrice" value="9.99" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="monthlySplit">% of Users</label>
-                            <input type="number" id="monthlySplit" value="25" inputmode="numeric" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="relative"><span class="absolute left-2 top-2 text-xs text-gray-400">Wk</span><input type="number" id="weeklyPriceB" value="4.99" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded pl-8 pr-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"></div>
+                        <input type="number" id="weeklySplitB" value="25" inputmode="numeric" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="annualPrice">Annual ($)</label>
-                            <input type="number" id="annualPrice" value="29.99" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="annualSplit">% of Users</label>
-                            <input type="number" id="annualSplit" value="35" inputmode="numeric" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="relative"><span class="absolute left-2 top-2 text-xs text-gray-400">Mo</span><input type="number" id="monthlyPriceB" value="9.99" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded pl-8 pr-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"></div>
+                        <input type="number" id="monthlySplitB" value="25" inputmode="numeric" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="lifetimePrice">Lifetime ($)</label>
-                            <input type="number" id="lifetimePrice" value="79.99" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider" for="lifetimeSplit">% of Users</label>
-                            <input type="number" id="lifetimeSplit" value="15" inputmode="numeric" class="w-full bg-gray-700 rounded px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="relative"><span class="absolute left-2 top-2 text-xs text-gray-400">Yr</span><input type="number" id="annualPriceB" value="29.99" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded pl-8 pr-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"></div>
+                        <input type="number" id="annualSplitB" value="35" inputmode="numeric" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
                     </div>
-                    <p id="splitWarning" class="text-xs text-yellow-400 hidden">⚠ Splits don't add to 100%</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Results -->
-        <div class="bg-gray-800 rounded-lg p-5 mb-6">
-            <h2 class="text-base font-semibold mb-5 text-gray-100 section-header">Results</h2>
-
-            <!-- 7-card stat grid including payback -->
-            <div id="statCardsGrid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 mb-6">
-                <div class="stat-card bg-gray-700 rounded-lg px-3 py-3 flex flex-col justify-between min-h-[72px]">
-                    <p class="text-[10px] text-gray-400 uppercase tracking-widest whitespace-nowrap mb-1.5">Installs/Day</p>
-                    <p id="installsPerDay" class="text-xl font-bold leading-none" style="font-variant-numeric:tabular-nums">500</p>
-                </div>
-                <div id="trialsPerDayCard" class="stat-card bg-gray-700 rounded-lg px-3 py-3 flex flex-col justify-between min-h-[72px]">
-                    <p class="text-[10px] text-gray-400 uppercase tracking-widest whitespace-nowrap mb-1.5">Trials/Day</p>
-                    <p id="trialsPerDay" class="text-xl font-bold leading-none" style="font-variant-numeric:tabular-nums">200</p>
-                </div>
-                <div class="stat-card bg-gray-700 rounded-lg px-3 py-3 flex flex-col justify-between min-h-[72px]">
-                    <p class="text-[10px] text-gray-400 uppercase tracking-widest whitespace-nowrap mb-1.5">Converts/Day</p>
-                    <p id="conversionsPerDay" class="text-xl font-bold leading-none" style="font-variant-numeric:tabular-nums">20</p>
-                </div>
-                <div class="stat-card bg-gray-700 rounded-lg px-3 py-3 flex flex-col justify-between min-h-[72px]">
-                    <p class="text-[10px] text-gray-400 uppercase tracking-widest whitespace-nowrap mb-1.5">Gross ARPU</p>
-                    <p id="blendedArpu" class="text-xl font-bold leading-none" style="font-variant-numeric:tabular-nums">$24.50</p>
-                </div>
-                <div class="stat-card bg-gray-700 rounded-lg px-3 py-3 flex flex-col justify-between min-h-[72px]">
-                    <p class="text-[10px] text-gray-400 uppercase tracking-widest whitespace-nowrap mb-1.5">Net ARPU</p>
-                    <p id="netArpu" class="text-xl font-bold leading-none" style="font-variant-numeric:tabular-nums">$17.15</p>
-                </div>
-                <div class="stat-card bg-gray-700 rounded-lg px-3 py-3 flex flex-col justify-between min-h-[72px]">
-                    <p class="text-[10px] text-gray-400 uppercase tracking-widest whitespace-nowrap mb-1.5">Rev/Day</p>
-                    <p id="revenuePerDay" class="text-xl font-bold leading-none" style="font-variant-numeric:tabular-nums">$490</p>
-                </div>
-                <div class="stat-card bg-gray-700 rounded-lg px-3 py-3 flex flex-col justify-between min-h-[72px]">
-                    <p class="text-[10px] text-gray-400 uppercase tracking-widest whitespace-nowrap mb-1.5">Payback</p>
-                    <p id="paybackCard" class="text-xl font-bold leading-none text-green-400" style="font-variant-numeric:tabular-nums">—</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="relative"><span class="absolute left-2 top-2 text-xs text-gray-400">LT</span><input type="number" id="lifetimePriceB" value="79.99" step="0.01" inputmode="decimal" class="w-full bg-gray-700 rounded pl-8 pr-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"></div>
+                        <input type="number" id="lifetimeSplitB" value="15" inputmode="numeric" class="w-full bg-gray-700 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                    <p id="splitWarningB" class="text-xs text-yellow-400 hidden">⚠ Splits don't add to 100%</p>
                 </div>
             </div>
 
-            <!-- ROAS Chart -->
-            <div class="mb-6">
-                <p class="text-xs text-gray-500 mb-3 uppercase tracking-wider" style="letter-spacing:0.08em">ROAS curve — hover to inspect</p>
-                <div id="roasChartContainer" class="chart-wrap" style="min-height:240px"></div>
+            <!-- Retention Curve B -->
+            <div class="bg-gray-800 rounded-lg p-4 border-l-2 border-amber-400">
+                <h3 class="text-sm font-semibold mb-1 text-gray-100 section-header">Subscription Retention</h3>
+                <p class="text-xs text-gray-500 mb-3 pl-3">Cumulative % still active after each month (from your dashboard)</p>
+                <div class="grid grid-cols-4 gap-2">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 text-center">M1 (%)</label>
+                        <input type="number" id="retM1B" value="53" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 text-center">M2 (%)</label>
+                        <input type="number" id="retM2B" value="47" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 text-center">M3 (%)</label>
+                        <input type="number" id="retM3B" value="32" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 text-center">M4 (%)</label>
+                        <input type="number" id="retM4B" value="36" step="0.1" inputmode="decimal" class="w-full bg-gray-700 rounded px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                </div>
+                <p class="text-xs text-gray-600 mt-2">M4+ held constant at M4 period-over-period ratio</p>
             </div>
 
-            <h3 class="text-xs font-semibold mb-3 text-gray-300 uppercase tracking-wider">ROAS by Timeframe <span class="normal-case text-gray-500 font-normal">(100% = break even)</span></h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="text-left text-gray-300 border-b border-gray-600">
-                            <th class="pb-2 px-2 font-medium">Timeframe</th>
-                            <th class="pb-2 px-2 font-medium">ROAS</th>
-                            <th class="pb-2 px-2 font-medium">Status</th>
-                            <th class="pb-2 px-2 font-medium text-right">Revenue</th>
-                            <th class="pb-2 px-2 font-medium text-right">Spend</th>
-                            <th class="pb-2 px-2 font-medium text-right">Margin</th>
-                            <th class="pb-2 px-2 font-medium text-right">Gross Margin %</th>
-                        </tr>
-                    </thead>
-                    <tbody id="roasTable" class="text-gray-300"></tbody>
-                    <tbody id="roasTableExtended" class="text-gray-300 hidden"></tbody>
-                </table>
+            <!-- Stat cards B -->
+            <div class="bg-gray-800 rounded-lg p-4 border-l-2 border-amber-400">
+                <h3 class="text-sm font-semibold mb-3 text-gray-100 section-header">Key Metrics</h3>
+                <div id="statCardsGridB" class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    <div class="stat-card bg-gray-700 rounded-lg px-2 py-2 flex flex-col">
+                        <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Installs/Day</p>
+                        <p id="installsPerDayB" class="text-base font-bold num">500</p>
+                    </div>
+                    <div id="trialsPerDayCardB" class="stat-card bg-gray-700 rounded-lg px-2 py-2 flex flex-col">
+                        <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Trials/Day</p>
+                        <p id="trialsPerDayB" class="text-base font-bold num">200</p>
+                    </div>
+                    <div class="stat-card bg-gray-700 rounded-lg px-2 py-2 flex flex-col">
+                        <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Converts/Day</p>
+                        <p id="conversionsPerDayB" class="text-base font-bold num">20</p>
+                    </div>
+                    <div class="stat-card bg-gray-700 rounded-lg px-2 py-2 flex flex-col">
+                        <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Gross ARPU</p>
+                        <p id="blendedArpuB" class="text-base font-bold num">$24.50</p>
+                    </div>
+                    <div class="stat-card bg-gray-700 rounded-lg px-2 py-2 flex flex-col">
+                        <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Net ARPU</p>
+                        <p id="netArpuB" class="text-base font-bold num">$17.15</p>
+                    </div>
+                    <div class="stat-card bg-gray-700 rounded-lg px-2 py-2 flex flex-col">
+                        <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Payback</p>
+                        <p id="paybackCardB" class="text-base font-bold text-green-400 num">—</p>
+                    </div>
+                </div>
             </div>
-            <button id="toggleRoasWeeks" class="mt-4 text-sm text-blue-400 hover:text-blue-300 transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-1">See more (weeks 16–24) ▼</button>
-        </div>
-
-        <!-- Weekly Cohort -->
-        <div class="bg-gray-800 rounded-lg p-5">
-            <h2 class="text-base font-semibold mb-1 text-gray-100 section-header">Weekly Cohort Revenue Curve</h2>
-            <p class="text-xs text-gray-400 mb-5 pl-4">How a single day's cohort generates revenue over time</p>
-
-            <!-- Cohort Chart -->
-            <div class="mb-6">
-                <p class="text-xs text-gray-500 mb-3 uppercase tracking-wider" style="letter-spacing:0.08em">Cumulative revenue per cohort — tap to inspect</p>
-                <div id="cohortChartContainer" class="chart-wrap" style="min-height:220px"></div>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="text-left text-gray-300 border-b border-gray-600">
-                            <th class="pb-2 px-2 font-medium">Week</th>
-                            <th class="pb-2 px-2 font-medium text-right">Active Subs</th>
-                            <th class="pb-2 px-2 font-medium text-right">Weekly Rev</th>
-                            <th class="pb-2 px-2 font-medium text-right">Cumulative Rev</th>
-                            <th class="pb-2 px-2 font-medium text-right">ROAS</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cohortTable" class="text-gray-300"></tbody>
-                    <tbody id="cohortTableExtended" class="text-gray-300 hidden"></tbody>
-                </table>
-            </div>
-            <button id="toggleWeeks" class="mt-4 text-sm text-blue-400 hover:text-blue-300 transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-1">See more (weeks 13–24) ▼</button>
         </div>
     </div>
 
-    <!-- Chart Tooltips -->
-    <div id="roasTooltip" class="chart-tooltip"></div>
-    <div id="cohortTooltip" class="chart-tooltip"></div>
+    <!-- ══ COMPARISON RESULTS ══ -->
+    <div class="bg-gray-800 rounded-lg p-5 mb-6">
+        <h2 class="text-base font-semibold mb-5 text-gray-100 section-header">ROAS Comparison
+            <span class="normal-case text-gray-500 font-normal text-sm ml-2">(100% = break even)</span>
+        </h2>
 
-    <script>
-        const PRESETS_STORAGE_KEY = 'roas_calculator_presets';
+        <!-- Side-by-side ROAS charts -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
+            <div>
+                <p class="text-xs text-blue-400 mb-2 font-semibold uppercase tracking-wider">● Scenario A</p>
+                <div id="roasChartContainerA" class="chart-wrap" style="min-height:200px"></div>
+            </div>
+            <div>
+                <p class="text-xs text-amber-400 mb-2 font-semibold uppercase tracking-wider">● Scenario B</p>
+                <div id="roasChartContainerB" class="chart-wrap" style="min-height:200px"></div>
+            </div>
+        </div>
 
-        let appleTax = 0.30;
-        let noTrial = false;
-        let showExtendedWeeks = false;
-        let showExtendedRoas = false;
-        let currentPresetId = null;
-        let saveTimeout = null;
-        let inlineEditMode = null; // 'new' | 'rename'
+        <!-- Merged comparison table -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-gray-300 border-b border-gray-600">
+                        <th class="pb-2 px-2 font-medium">Timeframe</th>
+                        <th class="pb-2 px-2 font-medium col-a">ROAS A</th>
+                        <th class="pb-2 px-2 font-medium col-b">ROAS B</th>
+                        <th class="pb-2 px-2 font-medium text-gray-400">Δ (B−A)</th>
+                        <th class="pb-2 px-2 font-medium col-a text-right">Rev A</th>
+                        <th class="pb-2 px-2 font-medium col-b text-right">Rev B</th>
+                    </tr>
+                </thead>
+                <tbody id="comparisonTable" class="text-gray-300"></tbody>
+                <tbody id="comparisonTableExtended" class="text-gray-300 hidden"></tbody>
+            </table>
+        </div>
+        <button id="toggleComparisonWeeks" class="mt-4 text-sm text-blue-400 hover:text-blue-300 transition-colors rounded px-1">See more (weeks 16–24) ▼</button>
+    </div>
 
-        const LAST_PRESET_KEY = 'roas_calculator_last_preset';
+    <!-- ══ COHORT COMPARISON ══ -->
+    <div class="bg-gray-800 rounded-lg p-5">
+        <h2 class="text-base font-semibold mb-1 text-gray-100 section-header">Weekly Cohort Revenue</h2>
+        <p class="text-xs text-gray-400 mb-5 pl-4">How a single day's cohort generates cumulative revenue over time</p>
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div>
+                <p class="text-xs text-blue-400 mb-2 font-semibold uppercase tracking-wider">● Scenario A</p>
+                <div id="cohortChartContainerA" class="chart-wrap" style="min-height:200px"></div>
+            </div>
+            <div>
+                <p class="text-xs text-amber-400 mb-2 font-semibold uppercase tracking-wider">● Scenario B</p>
+                <div id="cohortChartContainerB" class="chart-wrap" style="min-height:200px"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
-        const DEFAULT_PRESETS = {
-            "preset_girl_walk": {
-                "name": "Girl Walk",
-                "values": {"dailySpend":150,"ecpi":2.50,"installToTrialRate":50,"trialLength":3,"ttpRate":10,"weeklyPrice":4.99,"weeklySplit":0,"monthlyPrice":9.99,"monthlySplit":0,"annualPrice":59.99,"annualSplit":100,"lifetimePrice":79.99,"lifetimeSplit":0,"weeklyChurn":20,"appleTax":0.15}
-            },
-            "preset_cdt": {
-                "name": "CDT",
-                "values": {"dailySpend":100,"ecpi":5.00,"installToTrialRate":50,"trialLength":3,"ttpRate":30,"weeklyPrice":5.99,"weeklySplit":90,"monthlyPrice":9.99,"monthlySplit":0,"annualPrice":49.99,"annualSplit":10,"lifetimePrice":79.99,"lifetimeSplit":0,"weeklyChurn":20,"appleTax":0.15}
-            },
-            "preset_girltalk": {
-                "name": "GirlTalk",
-                "values": {"dailySpend":100,"ecpi":5.00,"installToTrialRate":33,"trialLength":3,"ttpRate":20,"weeklyPrice":4.99,"weeklySplit":90,"monthlyPrice":9.99,"monthlySplit":0,"annualPrice":49.99,"annualSplit":10,"lifetimePrice":79.99,"lifetimeSplit":0,"weeklyChurn":20,"appleTax":0.15}
-            }
+<!-- Tooltips -->
+<div id="roasTooltipA" class="chart-tooltip"></div>
+<div id="roasTooltipB" class="chart-tooltip"></div>
+<div id="cohortTooltipA" class="chart-tooltip"></div>
+<div id="cohortTooltipB" class="chart-tooltip"></div>
+
+<script>
+    const PRESETS_STORAGE_KEY = 'roas_calculator_presets_v2';
+    const LAST_PRESET_KEY_A = 'roas_calc_last_a';
+    const LAST_PRESET_KEY_B = 'roas_calc_last_b';
+
+    const state = {
+        A: { appleTax: 0.30, noTrial: false, currentPresetId: null, saveTimeout: null, inlineEditMode: null },
+        B: { appleTax: 0.30, noTrial: false, currentPresetId: null, saveTimeout: null, inlineEditMode: null }
+    };
+    let showExtendedComparison = false;
+
+    const DEFAULT_PRESETS = {
+        "preset_girl_walk": {
+            name: "Girl Walk",
+            values: { dailySpend:150, ecpi:2.50, installToTrialRate:50, trialLength:3, ttpRate:10,
+                weeklyPrice:4.99, weeklySplit:0, monthlyPrice:9.99, monthlySplit:0,
+                annualPrice:59.99, annualSplit:100, lifetimePrice:79.99, lifetimeSplit:0,
+                retM1:53, retM2:47, retM3:32, retM4:36, appleTax:0.15, noTrial:false }
+        },
+        "preset_cdt": {
+            name: "CDT",
+            values: { dailySpend:100, ecpi:5.00, installToTrialRate:50, trialLength:3, ttpRate:30,
+                weeklyPrice:5.99, weeklySplit:90, monthlyPrice:9.99, monthlySplit:0,
+                annualPrice:49.99, annualSplit:10, lifetimePrice:79.99, lifetimeSplit:0,
+                retM1:53, retM2:47, retM3:32, retM4:36, appleTax:0.15, noTrial:false }
+        },
+        "preset_girltalk": {
+            name: "GirlTalk",
+            values: { dailySpend:100, ecpi:5.00, installToTrialRate:33, trialLength:3, ttpRate:20,
+                weeklyPrice:4.99, weeklySplit:90, monthlyPrice:9.99, monthlySplit:0,
+                annualPrice:49.99, annualSplit:10, lifetimePrice:79.99, lifetimeSplit:0,
+                retM1:53, retM2:47, retM3:32, retM4:36, appleTax:0.15, noTrial:false }
+        }
+    };
+
+    let cachedPresets = Object.assign({}, DEFAULT_PRESETS);
+    function getPresets() { return cachedPresets; }
+    function savePresets(p) {
+        cachedPresets = p;
+        try { localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(p)); } catch(e) {}
+    }
+
+    function gv(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+    // ── Retention curve ───────────────────────────────────────────────────────
+    // Inputs: M1..M4 = cumulative retention (% of original cohort still active)
+    // Returns fraction (0-1) at month m
+    function getCumulativeRetention(m, sc) {
+        if (m <= 0) return 1.0;
+        const r1 = gv('retM1'+sc)/100, r2 = gv('retM2'+sc)/100;
+        const r3 = gv('retM3'+sc)/100, r4 = gv('retM4'+sc)/100;
+        if (m <= 1) return r1 + (1 - r1) * (1 - m) * 0; // linear from 1→r1 within month 0-1
+        // Actually: for integer months use lookup; interpolate between
+        const pts = [1, r1, r2, r3, r4];
+        if (m <= 4) {
+            const lo = Math.floor(m), hi = Math.ceil(m);
+            if (lo === hi) return pts[lo];
+            return pts[lo] + (pts[hi] - pts[lo]) * (m - lo);
+        }
+        // M4+ extrapolate using M3→M4 period-over-period ratio, capped at 1
+        const lastRatio = r3 > 0 ? Math.min(r4 / r3, 1.0) : r4;
+        return r4 * Math.pow(lastRatio, m - 4);
+    }
+
+    // ── Formatting ────────────────────────────────────────────────────────────
+    function formatNum(v, d=0) { return v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+    function formatCurrency(v) { return '$'+formatNum(v,2); }
+    function formatPercent(v) { return v.toFixed(1)+'%'; }
+    function fmtK(v) {
+        if (v>=1000000) return '$'+(v/1000000).toFixed(1)+'M';
+        if (v>=1000) return '$'+(v/1000).toFixed(1)+'k';
+        return '$'+v.toFixed(0);
+    }
+
+    // ── Apple Tax ─────────────────────────────────────────────────────────────
+    function setAppleTax(sc, rate, shouldSave=true) {
+        state[sc].appleTax = rate;
+        const activeA = 'flex-1 py-2 rounded text-xs transition-colors bg-blue-600 hover:bg-blue-500';
+        const activeB = 'flex-1 py-2 rounded text-xs transition-colors bg-amber-600 hover:bg-amber-500';
+        const inactive = 'flex-1 py-2 rounded bg-gray-600 hover:bg-gray-500 text-xs transition-colors';
+        const active = sc==='A' ? activeA : activeB;
+        document.getElementById('tax15'+sc).className = rate===0.15 ? active : inactive;
+        document.getElementById('tax30'+sc).className = rate===0.30 ? active : inactive;
+        calculate(sc);
+        if (shouldSave) autoSavePreset(sc);
+    }
+
+    // ── Trial mode ────────────────────────────────────────────────────────────
+    function setTrialMode(sc, isNoTrial) {
+        state[sc].noTrial = isNoTrial;
+        const activeA = 'px-2 py-1 rounded text-xs transition-colors bg-blue-600 hover:bg-blue-500';
+        const activeB = 'px-2 py-1 rounded text-xs transition-colors bg-amber-600 hover:bg-amber-500';
+        const inactive = 'px-2 py-1 rounded bg-gray-600 hover:bg-gray-500 text-xs transition-colors';
+        const active = sc==='A' ? activeA : activeB;
+        document.getElementById('modeWithTrial'+sc).className = isNoTrial ? inactive : active;
+        document.getElementById('modeNoTrial'+sc).className = isNoTrial ? active : inactive;
+        ['installToTrialRow','trialLengthRow','ttpRateRow'].forEach(id => {
+            document.getElementById(id+sc).classList.toggle('hidden', isNoTrial);
+        });
+        document.getElementById('installToPaidRow'+sc).classList.toggle('hidden', !isNoTrial);
+        document.getElementById('trialsPerDayCard'+sc).classList.toggle('hidden', isNoTrial);
+        calculate(sc);
+    }
+
+    // ── Presets ───────────────────────────────────────────────────────────────
+    function getCurrentValues(sc) {
+        return {
+            dailySpend: gv('dailySpend'+sc), ecpi: gv('ecpi'+sc),
+            installToTrialRate: gv('installToTrialRate'+sc), trialLength: gv('trialLength'+sc),
+            ttpRate: gv('ttpRate'+sc), installToPaidRate: gv('installToPaidRate'+sc),
+            weeklyPrice: gv('weeklyPrice'+sc), weeklySplit: gv('weeklySplit'+sc),
+            monthlyPrice: gv('monthlyPrice'+sc), monthlySplit: gv('monthlySplit'+sc),
+            annualPrice: gv('annualPrice'+sc), annualSplit: gv('annualSplit'+sc),
+            lifetimePrice: gv('lifetimePrice'+sc), lifetimeSplit: gv('lifetimeSplit'+sc),
+            retM1: gv('retM1'+sc), retM2: gv('retM2'+sc),
+            retM3: gv('retM3'+sc), retM4: gv('retM4'+sc),
+            appleTax: state[sc].appleTax, noTrial: state[sc].noTrial
         };
+    }
 
-        let cachedPresets = Object.assign({}, DEFAULT_PRESETS);
+    function loadPresetValues(sc, v) {
+        const ids = ['dailySpend','ecpi','installToTrialRate','trialLength','ttpRate','installToPaidRate',
+            'weeklyPrice','weeklySplit','monthlyPrice','monthlySplit','annualPrice','annualSplit',
+            'lifetimePrice','lifetimeSplit'];
+        const defaults = {dailySpend:1000,ecpi:2,installToTrialRate:50,trialLength:7,ttpRate:10,
+            installToPaidRate:20,weeklyPrice:4.99,weeklySplit:25,monthlyPrice:9.99,monthlySplit:25,
+            annualPrice:29.99,annualSplit:35,lifetimePrice:79.99,lifetimeSplit:15};
+        ids.forEach(id => { document.getElementById(id+sc).value = v[id] ?? defaults[id]; });
+        document.getElementById('retM1'+sc).value = v.retM1 ?? 53;
+        document.getElementById('retM2'+sc).value = v.retM2 ?? 47;
+        document.getElementById('retM3'+sc).value = v.retM3 ?? 32;
+        document.getElementById('retM4'+sc).value = v.retM4 ?? 36;
+        if (v.appleTax !== undefined) setAppleTax(sc, v.appleTax, false);
+        setTrialMode(sc, v.noTrial ?? false);
+        calculate(sc);
+    }
 
-        function getPresets() { return cachedPresets; }
-
-        function savePresets(presets) {
-            cachedPresets = presets;
-            try {
-                localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(presets));
-            } catch(err) {
-                console.error('Save error:', err);
-            }
-        }
-
-        function getCurrentValues() {
-            return {
-                dailySpend: getValue('dailySpend'), ecpi: getValue('ecpi'), installToTrialRate: getValue('installToTrialRate'),
-                trialLength: getValue('trialLength'), ttpRate: getValue('ttpRate'),
-                weeklyPrice: getValue('weeklyPrice'), weeklySplit: getValue('weeklySplit'),
-                monthlyPrice: getValue('monthlyPrice'), monthlySplit: getValue('monthlySplit'),
-                annualPrice: getValue('annualPrice'), annualSplit: getValue('annualSplit'),
-                lifetimePrice: getValue('lifetimePrice'), lifetimeSplit: getValue('lifetimeSplit'),
-                installToPaidRate: getValue('installToPaidRate'),
-                weeklyChurn: getValue('weeklyChurn'), appleTax: appleTax,
-                noTrial: noTrial
-            };
-        }
-
-        function loadPresetValues(values) {
-            document.getElementById('dailySpend').value = values.dailySpend ?? 1000;
-            document.getElementById('ecpi').value = values.ecpi ?? 2;
-            document.getElementById('installToTrialRate').value = values.installToTrialRate ?? 50;
-            document.getElementById('trialLength').value = values.trialLength ?? 7;
-            document.getElementById('ttpRate').value = values.ttpRate ?? 10;
-            document.getElementById('weeklyPrice').value = values.weeklyPrice ?? 4.99;
-            document.getElementById('weeklySplit').value = values.weeklySplit ?? 25;
-            document.getElementById('monthlyPrice').value = values.monthlyPrice ?? 9.99;
-            document.getElementById('monthlySplit').value = values.monthlySplit ?? 25;
-            document.getElementById('annualPrice').value = values.annualPrice ?? 29.99;
-            document.getElementById('annualSplit').value = values.annualSplit ?? 35;
-            document.getElementById('lifetimePrice').value = values.lifetimePrice ?? 79.99;
-            document.getElementById('lifetimeSplit').value = values.lifetimeSplit ?? 15;
-            document.getElementById('weeklyChurn').value = values.weeklyChurn ?? 15;
-            document.getElementById('installToPaidRate').value = values.installToPaidRate ?? 20;
-            if (values.appleTax !== undefined) setAppleTax(values.appleTax, false);
-            setTrialMode(values.noTrial ?? false);
-            calculate();
-        }
-
-        function renderPresetDropdown() {
-            const select = document.getElementById('presetSelect');
-            const presets = getPresets();
-            select.innerHTML = '<option value="">— Select or create —</option>';
-            Object.entries(presets).forEach(([id, preset]) => {
+    function renderPresetDropdowns() {
+        ['A','B'].forEach(sc => {
+            const sel = document.getElementById('presetSelect'+sc);
+            sel.innerHTML = '<option value="">— Select or create —</option>';
+            Object.entries(getPresets()).forEach(([id, p]) => {
                 const opt = document.createElement('option');
-                opt.value = id;
-                opt.textContent = preset.name;
-                select.appendChild(opt);
+                opt.value = id; opt.textContent = p.name; sel.appendChild(opt);
             });
-            if (currentPresetId) select.value = currentPresetId;
-            updatePresetButtons();
-        }
+            if (state[sc].currentPresetId) sel.value = state[sc].currentPresetId;
+            updatePresetButtons(sc);
+        });
+    }
 
-        function updatePresetButtons() {
-            const has = currentPresetId !== null;
-            document.getElementById('renamePresetBtn').classList.toggle('hidden', !has);
-            document.getElementById('deletePresetBtn').classList.toggle('hidden', !has);
-        }
+    function updatePresetButtons(sc) {
+        const has = state[sc].currentPresetId !== null;
+        document.getElementById('renamePresetBtn'+sc).classList.toggle('hidden', !has);
+        document.getElementById('deletePresetBtn'+sc).classList.toggle('hidden', !has);
+    }
 
-        function showAutoSaveIndicator() {
-            const el = document.getElementById('autoSaveIndicator');
-            el.classList.add('visible');
-            setTimeout(() => el.classList.remove('visible'), 1800);
-        }
+    function showAutoSaveIndicator(sc) {
+        const el = document.getElementById('autoSaveIndicator'+sc);
+        el.classList.add('visible');
+        setTimeout(() => el.classList.remove('visible'), 1800);
+    }
 
-        function autoSavePreset() {
-            if (!currentPresetId) return;
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                const presets = getPresets();
-                if (presets[currentPresetId]) {
-                    presets[currentPresetId].values = getCurrentValues();
-                    savePresets(presets);
-                    showAutoSaveIndicator();
-                }
-            }, 500);
-        }
-
-        // ── Inline preset editing (replaces prompt()) ──────────────────────────
-        function showInlineEdit(mode) {
-            inlineEditMode = mode;
-            document.getElementById('presetNormal').style.display = 'none';
-            const editArea = document.getElementById('presetInlineEdit');
-            editArea.classList.add('active');
-            const label = document.getElementById('presetEditLabel');
-            const input = document.getElementById('presetNameInput');
-            if (mode === 'new') {
-                label.textContent = 'New app name:';
-                input.value = '';
-            } else {
-                label.textContent = 'Rename to:';
-                input.value = getPresets()[currentPresetId]?.name || '';
+    function autoSavePreset(sc) {
+        if (!state[sc].currentPresetId) return;
+        clearTimeout(state[sc].saveTimeout);
+        state[sc].saveTimeout = setTimeout(() => {
+            const p = getPresets();
+            if (p[state[sc].currentPresetId]) {
+                p[state[sc].currentPresetId].values = getCurrentValues(sc);
+                savePresets(p); showAutoSaveIndicator(sc);
             }
-            setTimeout(() => input.focus(), 50);
-        }
+        }, 500);
+    }
 
-        function hideInlineEdit() {
-            inlineEditMode = null;
-            document.getElementById('presetNormal').style.display = '';
-            document.getElementById('presetInlineEdit').classList.remove('active');
-        }
+    function showInlineEdit(sc, mode) {
+        state[sc].inlineEditMode = mode;
+        document.getElementById('presetNormal'+sc).style.display = 'none';
+        document.getElementById('presetInlineEdit'+sc).classList.add('active');
+        document.getElementById('presetEditLabel'+sc).textContent = mode==='new' ? 'New name:' : 'Rename to:';
+        const inp = document.getElementById('presetNameInput'+sc);
+        inp.value = mode==='new' ? '' : (getPresets()[state[sc].currentPresetId]?.name||'');
+        setTimeout(() => inp.focus(), 50);
+    }
 
-        function confirmInlineEdit() {
-            const name = document.getElementById('presetNameInput').value.trim();
-            if (!name) { hideInlineEdit(); return; }
-            const presets = getPresets();
-            if (inlineEditMode === 'new') {
-                const id = 'preset_' + Date.now();
-                presets[id] = { name, values: getCurrentValues() };
-                savePresets(presets);
-                currentPresetId = id;
-                localStorage.setItem(LAST_PRESET_KEY, id);
-            } else {
-                if (currentPresetId && presets[currentPresetId]) {
-                    presets[currentPresetId].name = name;
-                    savePresets(presets);
-                }
+    function hideInlineEdit(sc) {
+        state[sc].inlineEditMode = null;
+        document.getElementById('presetNormal'+sc).style.display = '';
+        document.getElementById('presetInlineEdit'+sc).classList.remove('active');
+    }
+
+    function confirmInlineEdit(sc) {
+        const name = document.getElementById('presetNameInput'+sc).value.trim();
+        if (!name) { hideInlineEdit(sc); return; }
+        const p = getPresets();
+        const lastKey = sc==='A' ? LAST_PRESET_KEY_A : LAST_PRESET_KEY_B;
+        if (state[sc].inlineEditMode==='new') {
+            const id = 'preset_'+Date.now();
+            p[id] = { name, values: getCurrentValues(sc) };
+            savePresets(p); state[sc].currentPresetId = id;
+            localStorage.setItem(lastKey, id);
+        } else if (state[sc].currentPresetId && p[state[sc].currentPresetId]) {
+            p[state[sc].currentPresetId].name = name; savePresets(p);
+        }
+        hideInlineEdit(sc); renderPresetDropdowns(); showAutoSaveIndicator(sc);
+    }
+
+    function deletePreset(sc) {
+        if (!state[sc].currentPresetId) return;
+        const p = getPresets();
+        if (!confirm('Delete "' + (p[state[sc].currentPresetId]?.name||'this preset') + '"?')) return;
+        delete p[state[sc].currentPresetId]; savePresets(p);
+        state[sc].currentPresetId = null;
+        localStorage.removeItem(sc==='A'?LAST_PRESET_KEY_A:LAST_PRESET_KEY_B);
+        renderPresetDropdowns();
+    }
+
+    function onPresetChange(sc, e) {
+        const id = e.target.value;
+        if (!id) { state[sc].currentPresetId = null; updatePresetButtons(sc); return; }
+        const p = getPresets();
+        if (p[id]) {
+            state[sc].currentPresetId = id;
+            localStorage.setItem(sc==='A'?LAST_PRESET_KEY_A:LAST_PRESET_KEY_B, id);
+            loadPresetValues(sc, p[id].values); updatePresetButtons(sc);
+        }
+    }
+
+    // ── Charts ────────────────────────────────────────────────────────────────
+    function buildColoredSegments(pts) {
+        if (pts.length < 2) return [];
+        const segs = [];
+        let cur = { color: pts[0].roas>=100?'green':'red', points:[pts[0]] };
+        for (let i=1; i<pts.length; i++) {
+            const p1=pts[i-1], p2=pts[i];
+            if ((p1.roas>=100) !== (p2.roas>=100)) {
+                const t=(100-p1.roas)/(p2.roas-p1.roas);
+                const inter={x:p1.x+t*(p2.x-p1.x), y:p1.y+t*(p2.y-p1.y), roas:100};
+                cur.points.push(inter); segs.push(cur);
+                cur={color:p2.roas>=100?'green':'red', points:[inter,p2]};
+            } else { cur.points.push(p2); }
+        }
+        segs.push(cur); return segs;
+    }
+
+    function addChartTouch(container, zones, onEnter, onLeave, tooltip) {
+        zones.forEach(z => {
+            z.addEventListener('touchstart', e => {
+                e.preventDefault(); onEnter(z);
+                const t=e.touches[0];
+                tooltip.style.left=Math.min(t.clientX+16,window.innerWidth-180)+'px';
+                tooltip.style.top=Math.max(t.clientY-100,8)+'px';
+            },{passive:false});
+            z.addEventListener('touchmove', e => {
+                e.preventDefault();
+                const t=e.touches[0];
+                const el=document.elementFromPoint(t.clientX,t.clientY);
+                if (el&&el!==z&&el.dataset.i!==undefined) onEnter(el);
+                tooltip.style.left=Math.min(t.clientX+16,window.innerWidth-180)+'px';
+                tooltip.style.top=Math.max(t.clientY-100,8)+'px';
+            },{passive:false});
+            z.addEventListener('touchend', onLeave);
+        });
+    }
+
+    function drawRoasChart(results, cid, tid, accentColor) {
+        const container=document.getElementById(cid), tooltip=document.getElementById(tid);
+        if (!container||results.length<2) return;
+        const W=container.clientWidth||480, H=200;
+        const pad={top:16,right:78,bottom:50,left:48};
+        const cW=W-pad.left-pad.right, cH=H-pad.top-pad.bottom, n=results.length;
+        const maxRoas=Math.max(150,...results.map(r=>r.roas));
+        const yMax=Math.ceil(maxRoas/50)*50, yBase=pad.top+cH;
+        const toX=i=>pad.left+(n>1?(i/(n-1))*cW:cW/2);
+        const toY=v=>pad.top+cH-Math.min(v/yMax,1.05)*cH;
+        const pts=results.map((r,i)=>({x:toX(i),y:Math.max(pad.top-4,toY(r.roas)),
+            roas:r.roas,label:r.label,totalRevenue:r.totalRevenue,cumSpend:r.cumSpend,grossMargin:r.grossMargin}));
+        const y100=toY(100), segs=buildColoredSegments(pts);
+        const shortL=l=>l.replace(' (spend)','').replace(' (trial ends)','').replace(' (first revenue)',' ↑').replace('Week ','W');
+        const finalRoas=pts[pts.length-1].roas;
+        let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" style="display:block;font-family:system-ui,-apple-system,sans-serif;overflow:visible">
+        <defs>
+            <clipPath id="rc${cid}"><rect x="${pad.left}" y="${pad.top-4}" width="${cW}" height="${cH+8}"/></clipPath>
+            <linearGradient id="rg${cid}" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="${finalRoas>=100?'#22c55e':'#ef4444'}" stop-opacity="0.14"/>
+                <stop offset="100%" stop-color="${finalRoas>=100?'#22c55e':'#ef4444'}" stop-opacity="0"/>
+            </linearGradient>
+        </defs>`;
+        for(let v=0;v<=yMax;v+=50){const y=toY(v);
+            svg+=`<line x1="${pad.left}" x2="${pad.left+cW}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+            svg+=`<text x="${pad.left-5}" y="${y+4}" text-anchor="end" font-size="10" fill="#4b5563">${v}%</text>`;}
+        if(y100>pad.top&&y100<yBase){
+            svg+=`<line x1="${pad.left}" x2="${pad.left+cW}" y1="${y100}" y2="${y100}" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="4,3"/>`;
+            svg+=`<text x="${pad.left+cW+4}" y="${y100+4}" font-size="8" fill="rgba(255,255,255,0.28)">BREAK EVEN</text>`;}
+        svg+=`<path d="M ${pts[0].x} ${yBase}${pts.map(p=>` L ${p.x} ${p.y}`).join('')} L ${pts[n-1].x} ${yBase} Z" fill="url(#rg${cid})" clip-path="url(#rc${cid})"/>`;
+        segs.forEach(seg=>{
+            const color=seg.color==='green'?'#22c55e':'#f87171';
+            const d=seg.points.map((p,i)=>`${i===0?'M':'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+            svg+=`<path d="${d}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" clip-path="url(#rc${cid})"/>`;});
+        pts.forEach(p=>{const c=p.roas>=100?'#22c55e':'#f87171';
+            svg+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${c}" stroke="#1f2937" stroke-width="2" clip-path="url(#rc${cid})"/>`;});
+        pts.forEach((p,i)=>{
+            svg+=`<text transform="rotate(-35,${p.x.toFixed(1)},${yBase+12})" x="${p.x.toFixed(1)}" y="${yBase+12}" text-anchor="end" font-size="9" fill="#4b5563">${shortL(results[i].label)}</text>`;});
+        pts.forEach((p,i)=>{
+            const prevX=i>0?pts[i-1].x:p.x,nextX=i<n-1?pts[i+1].x:p.x;
+            const zl=(p.x-prevX)/2,zr=(nextX-p.x)/2;
+            svg+=`<rect x="${(p.x-zl).toFixed(1)}" y="${pad.top}" width="${(zl+zr).toFixed(1)}" height="${cH}" fill="transparent" class="rhz-${cid}" data-i="${i}" style="cursor:crosshair"/>`;});
+        svg+=`<line id="rCH${cid}" x1="0" x2="0" y1="${pad.top}" y2="${yBase}" stroke="rgba(255,255,255,0.12)" stroke-width="1" display="none"/>`;
+        svg+=`<circle id="rHD${cid}" cx="0" cy="0" r="5" fill="white" stroke="#111827" stroke-width="2.5" display="none"/></svg>`;
+        container.innerHTML=svg;
+        const onEnter=z=>{
+            const i=+z.dataset.i,p=pts[i],r=results[i];
+            const ch=container.querySelector('#rCH'+cid),hd=container.querySelector('#rHD'+cid);
+            ch.setAttribute('x1',p.x);ch.setAttribute('x2',p.x);ch.removeAttribute('display');
+            hd.setAttribute('cx',p.x);hd.setAttribute('cy',p.y);
+            hd.setAttribute('fill',p.roas>=100?'#22c55e':'#f87171');hd.removeAttribute('display');
+            const rc=p.roas>=100?'#22c55e':'#f87171',mc=r.grossMargin>=0?'#22c55e':'#f87171',ms=r.grossMargin>=0?'+':'−';
+            tooltip.innerHTML=`<div class="tt-label" style="color:${accentColor}">${r.label}</div>
+                <div class="tt-row">ROAS <span style="color:${rc}">${p.roas.toFixed(1)}%</span></div>
+                <div class="tt-row">Revenue <span>${fmtK(r.totalRevenue)}</span></div>
+                <div class="tt-row">Spend <span>${fmtK(r.cumSpend)}</span></div>
+                <div class="tt-row">Margin <span style="color:${mc}">${ms}${fmtK(Math.abs(r.grossMargin))}</span></div>`;
+            tooltip.style.display='block';};
+        const onLeave=()=>{tooltip.style.display='none';
+            container.querySelector('#rCH'+cid)?.setAttribute('display','none');
+            container.querySelector('#rHD'+cid)?.setAttribute('display','none');};
+        const zones=[...container.querySelectorAll('.rhz-'+cid)];
+        zones.forEach(z=>{
+            z.addEventListener('mouseenter',()=>onEnter(z));
+            z.addEventListener('mousemove',e=>{tooltip.style.left=(e.clientX+18)+'px';tooltip.style.top=(e.clientY-12)+'px';});
+            z.addEventListener('mouseleave',onLeave);});
+        addChartTouch(container,zones,onEnter,onLeave,tooltip);
+    }
+
+    function drawCohortChart(cohortData, dailySpend, cid, tid, accentColor) {
+        const container=document.getElementById(cid),tooltip=document.getElementById(tid);
+        if (!container||cohortData.length<2) return;
+        const W=container.clientWidth||480,H=200;
+        const pad={top:16,right:78,bottom:40,left:52};
+        const cW=W-pad.left-pad.right,cH=H-pad.top-pad.bottom,n=cohortData.length,yBase=pad.top+cH;
+        const maxRev=Math.max(1,...cohortData.map(d=>d.cumCohortRev));
+        const rawTick=maxRev/4,mag=Math.pow(10,Math.floor(Math.log10(rawTick||1)));
+        const tickInt=[1,2,2.5,5,10].map(v=>v*mag).find(v=>Math.ceil(maxRev/v)<=6)||mag*10;
+        const yMax=Math.ceil(maxRev/tickInt)*tickInt||tickInt;
+        const toX=i=>pad.left+(n>1?(i/(n-1))*cW:cW/2);
+        const toY=v=>pad.top+cH-Math.min(v/yMax,1.02)*cH;
+        const pts=cohortData.map((d,i)=>({x:toX(i),y:Math.max(pad.top-2,toY(d.cumCohortRev)),...d}));
+        const yBreak=toY(dailySpend),finalRoas=cohortData[n-1].cohortRoas;
+        const lineColor=finalRoas>=100?'#22c55e':'#38bdf8';
+        let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" style="display:block;font-family:system-ui,-apple-system,sans-serif;overflow:visible">
+        <defs>
+            <clipPath id="cc${cid}"><rect x="${pad.left}" y="${pad.top-4}" width="${cW}" height="${cH+8}"/></clipPath>
+            <linearGradient id="cg${cid}" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.18"/>
+                <stop offset="100%" stop-color="${lineColor}" stop-opacity="0.01"/>
+            </linearGradient>
+        </defs>`;
+        for(let v=0;v<=yMax+0.001;v+=tickInt){const y=toY(v);
+            svg+=`<line x1="${pad.left}" x2="${pad.left+cW}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+            svg+=`<text x="${pad.left-5}" y="${y+4}" text-anchor="end" font-size="10" fill="#4b5563">${fmtK(v)}</text>`;}
+        if(yBreak>pad.top&&yBreak<yBase){
+            svg+=`<line x1="${pad.left}" x2="${pad.left+cW}" y1="${yBreak}" y2="${yBreak}" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="4,3"/>`;
+            svg+=`<text x="${pad.left+cW+4}" y="${yBreak+4}" font-size="8" fill="rgba(255,255,255,0.28)">BREAK EVEN</text>`;}
+        svg+=`<path d="M ${pts[0].x} ${yBase}${pts.map(p=>` L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join('')} L ${pts[n-1].x} ${yBase} Z" fill="url(#cg${cid})" clip-path="url(#cc${cid})"/>`;
+        const lp=pts.map((p,i)=>`${i===0?'M':'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+        svg+=`<path d="${lp}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" clip-path="url(#cc${cid})"/>`;
+        pts.forEach((p,i)=>{if(i%4===0||i===n-1)
+            svg+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${lineColor}" stroke="#1f2937" stroke-width="2" clip-path="url(#cc${cid})"/>`;});
+        pts.forEach((p,i)=>{if(i%4===0||i===n-1)
+            svg+=`<text x="${p.x.toFixed(1)}" y="${yBase+14}" text-anchor="middle" font-size="9" fill="#4b5563">W${i}</text>`;});
+        const bw=cW/n;
+        pts.forEach((p,i)=>{
+            svg+=`<rect x="${(pad.left+i*bw).toFixed(1)}" y="${pad.top}" width="${bw.toFixed(1)}" height="${cH}" fill="transparent" class="chz-${cid}" data-i="${i}" style="cursor:crosshair"/>`;});
+        svg+=`<line id="cCH${cid}" x1="0" x2="0" y1="${pad.top}" y2="${yBase}" stroke="rgba(255,255,255,0.12)" stroke-width="1" display="none"/>`;
+        svg+=`<circle id="cHD${cid}" cx="0" cy="0" r="5" fill="white" stroke="#111827" stroke-width="2.5" display="none"/></svg>`;
+        container.innerHTML=svg;
+        const onEnter=z=>{
+            const i=+z.dataset.i,p=pts[i],d=cohortData[i];
+            const ch=container.querySelector('#cCH'+cid),hd=container.querySelector('#cHD'+cid);
+            ch.setAttribute('x1',p.x);ch.setAttribute('x2',p.x);ch.removeAttribute('display');
+            hd.setAttribute('cx',p.x);hd.setAttribute('cy',p.y);hd.removeAttribute('display');
+            const rc=d.cohortRoas>=100?'#22c55e':'#f87171';
+            tooltip.innerHTML=`<div class="tt-label" style="color:${accentColor}">Week ${d.week}</div>
+                <div class="tt-row">Cum. Revenue <span>${fmtK(d.cumCohortRev)}</span></div>
+                <div class="tt-row">This Week <span>${fmtK(d.weekRevenue)}</span></div>
+                <div class="tt-row">ROAS <span style="color:${rc}">${d.cohortRoas.toFixed(1)}%</span></div>`;
+            tooltip.style.display='block';};
+        const onLeave=()=>{tooltip.style.display='none';
+            container.querySelector('#cCH'+cid)?.setAttribute('display','none');
+            container.querySelector('#cHD'+cid)?.setAttribute('display','none');};
+        const zones=[...container.querySelectorAll('.chz-'+cid)];
+        zones.forEach(z=>{
+            z.addEventListener('mouseenter',()=>onEnter(z));
+            z.addEventListener('mousemove',e=>{tooltip.style.left=(e.clientX+18)+'px';tooltip.style.top=(e.clientY-12)+'px';});
+            z.addEventListener('mouseleave',onLeave);});
+        addChartTouch(container,zones,onEnter,onLeave,tooltip);
+    }
+
+    // ── Last results store ────────────────────────────────────────────────────
+    const lastResults = { A: [], B: [] };
+
+    // ── Main calculate ────────────────────────────────────────────────────────
+    function calculate(sc) {
+        const s = sc;
+        const dailySpend = gv('dailySpend'+s);
+        const ttpRate = gv('ttpRate'+s)/100;
+        const trialLength = state[s].noTrial ? 0 : gv('trialLength'+s);
+        const weeklyPrice=gv('weeklyPrice'+s), monthlyPrice=gv('monthlyPrice'+s);
+        const annualPrice=gv('annualPrice'+s), lifetimePrice=gv('lifetimePrice'+s);
+        const weeklySplit=gv('weeklySplit'+s)/100, monthlySplit=gv('monthlySplit'+s)/100;
+        const annualSplit=gv('annualSplit'+s)/100, lifetimeSplit=gv('lifetimeSplit'+s)/100;
+
+        document.getElementById('splitWarning'+s).classList.toggle('hidden',
+            Math.abs(weeklySplit+monthlySplit+annualSplit+lifetimeSplit-1)<0.01);
+
+        const ecpi=gv('ecpi'+s);
+        const installsPerDay=ecpi>0?dailySpend/ecpi:0;
+        const trialsPerDay=state[s].noTrial?0:installsPerDay*(gv('installToTrialRate'+s)/100);
+        const conversionsPerDay=state[s].noTrial
+            ?installsPerDay*(gv('installToPaidRate'+s)/100)
+            :trialsPerDay*ttpRate;
+
+        const blendedArpu=weeklyPrice*weeklySplit+monthlyPrice*monthlySplit+annualPrice*annualSplit+lifetimePrice*lifetimeSplit;
+        const netMult=1-state[s].appleTax;
+        const netArpu=blendedArpu*netMult;
+        const netWeeklyPrice=weeklyPrice*netMult;
+        const netMonthlyPrice=monthlyPrice*netMult;
+        const revenuePerDay=conversionsPerDay*netArpu;
+
+        document.getElementById('installsPerDay'+s).textContent=formatNum(installsPerDay);
+        document.getElementById('trialsPerDay'+s).textContent=formatNum(trialsPerDay);
+        document.getElementById('conversionsPerDay'+s).textContent=formatNum(conversionsPerDay,1);
+        document.getElementById('blendedArpu'+s).textContent=formatCurrency(blendedArpu);
+        document.getElementById('netArpu'+s).textContent=formatCurrency(netArpu);
+
+        // Revenue calculation using retention curve
+        // For a cohort that has been active for `daysActive` days:
+        //   - weekly renewals: floor(daysActive/7) renewals, each at retention(week*7/30)
+        //   - monthly renewals: floor(daysActive/30) renewals, each at retention(month)
+        function renewalRevenueForCohort(daysActive) {
+            let wkRev=0;
+            const renewalWeeks=Math.floor(daysActive/7);
+            for(let r=1;r<=renewalWeeks;r++) {
+                wkRev+=conversionsPerDay*weeklySplit*getCumulativeRetention((r*7)/30,s)*netWeeklyPrice;
             }
-            hideInlineEdit();
-            renderPresetDropdown();
-            showAutoSaveIndicator();
-        }
-
-        function deletePreset() {
-            if (!currentPresetId) return;
-            const presets = getPresets();
-            const name = presets[currentPresetId]?.name || 'this preset';
-            if (!confirm('Delete "' + name + '"?')) return;
-            delete presets[currentPresetId];
-            savePresets(presets);
-            currentPresetId = null;
-            localStorage.removeItem(LAST_PRESET_KEY);
-            renderPresetDropdown();
-        }
-
-        function onPresetChange(e) {
-            const id = e.target.value;
-            if (!id) { currentPresetId = null; updatePresetButtons(); return; }
-            const presets = getPresets();
-            if (presets[id]) {
-                currentPresetId = id;
-                localStorage.setItem(LAST_PRESET_KEY, id);
-                loadPresetValues(presets[id].values);
-                updatePresetButtons();
+            let moRev=0;
+            const renewalMonths=Math.floor(daysActive/30);
+            for(let r=1;r<=renewalMonths;r++) {
+                moRev+=conversionsPerDay*monthlySplit*getCumulativeRetention(r,s)*netMonthlyPrice;
             }
+            return wkRev+moRev;
         }
 
-        function getValue(id) { return parseFloat(document.getElementById(id).value) || 0; }
-
-        function setTrialMode(isNoTrial) {
-            noTrial = isNoTrial;
-            document.getElementById('modeWithTrial').className = (isNoTrial ? 'bg-gray-600 hover:bg-gray-500' : 'bg-blue-600 hover:bg-blue-500') + ' px-3 py-1.5 rounded text-xs transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800';
-            document.getElementById('modeNoTrial').className   = (isNoTrial ? 'bg-blue-600 hover:bg-blue-500' : 'bg-gray-600 hover:bg-gray-500') + ' px-3 py-1.5 rounded text-xs transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800';
-            document.getElementById('installToTrialRow').classList.toggle('hidden', isNoTrial);
-            document.getElementById('installToPaidRow').classList.toggle('hidden', !isNoTrial);
-            document.getElementById('trialLengthRow').classList.toggle('hidden', isNoTrial);
-            document.getElementById('ttpRateRow').classList.toggle('hidden', isNoTrial);
-            document.getElementById('trialsPerDayCard').classList.toggle('hidden', isNoTrial);
-            const grid = document.getElementById('statCardsGrid');
-            grid.classList.toggle('lg:grid-cols-7', !isNoTrial);
-            grid.classList.toggle('lg:grid-cols-6', isNoTrial);
-            calculate();
-        }
-
-        function setAppleTax(rate, shouldAutoSave = true) {
-            appleTax = rate;
-            const cls15 = rate === 0.15 ? 'flex-1 py-3 px-3 rounded bg-blue-600 hover:bg-blue-500 transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800 text-sm' : 'flex-1 py-3 px-3 rounded bg-gray-600 hover:bg-gray-500 transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800 text-sm';
-            const cls30 = rate === 0.30 ? 'flex-1 py-3 px-3 rounded bg-blue-600 hover:bg-blue-500 transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800 text-sm' : 'flex-1 py-3 px-3 rounded bg-gray-600 hover:bg-gray-500 transition-colors duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800 text-sm';
-            document.getElementById('tax15').className = cls15;
-            document.getElementById('tax30').className = cls30;
-            document.getElementById('taxMultiplier').textContent = ((1 - appleTax) * 100).toFixed(0) + '%';
-            calculate();
-            if (shouldAutoSave) autoSavePreset();
-        }
-
-        function formatNum(val, decimals = 0) {
-            return val.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-        }
-        function formatCurrency(val) { return '$' + formatNum(val, 2); }
-        function formatPercent(val) { return val.toFixed(1) + '%'; }
-        function formatMargin(val) {
-            if (val >= 0) return '<span class="text-green-400 num">+$' + formatNum(val, 2) + '</span>';
-            return '<span class="text-red-400 num">−$' + formatNum(Math.abs(val), 2) + '</span>';
-        }
-
-        function getStatusBadge(roas) {
-            if (roas >= 100) return '<span class="px-2 py-0.5 bg-green-900 text-green-300 rounded text-xs">Profitable</span>';
-            else if (roas >= 80) return '<span class="px-2 py-0.5 bg-yellow-900 text-yellow-300 rounded text-xs">Close</span>';
-            else return '<span class="px-2 py-0.5 bg-red-900 text-red-300 rounded text-xs">Loss</span>';
-        }
-
-        function toggleExtendedWeeks() {
-            showExtendedWeeks = !showExtendedWeeks;
-            document.getElementById('cohortTableExtended').classList.toggle('hidden', !showExtendedWeeks);
-            document.getElementById('toggleWeeks').textContent = showExtendedWeeks ? 'See less ▲' : 'See more (weeks 13–24) ▼';
-        }
-
-        function toggleExtendedRoas() {
-            showExtendedRoas = !showExtendedRoas;
-            document.getElementById('roasTableExtended').classList.toggle('hidden', !showExtendedRoas);
-            document.getElementById('toggleRoasWeeks').textContent = showExtendedRoas ? 'See less ▲' : 'See more (weeks 16–24) ▼';
-        }
-
-        // ─── Chart helpers ────────────────────────────────────────────────────────
-
-        function buildColoredSegments(pts) {
-            if (pts.length < 2) return [];
-            const segments = [];
-            let current = { color: pts[0].roas >= 100 ? 'green' : 'red', points: [pts[0]] };
-            for (let i = 1; i < pts.length; i++) {
-                const p1 = pts[i - 1], p2 = pts[i];
-                const above1 = p1.roas >= 100, above2 = p2.roas >= 100;
-                if (above1 !== above2) {
-                    const t = (100 - p1.roas) / (p2.roas - p1.roas);
-                    const inter = { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y), roas: 100 };
-                    current.points.push(inter);
-                    segments.push(current);
-                    current = { color: above2 ? 'green' : 'red', points: [inter, p2] };
-                } else {
-                    current.points.push(p2);
-                }
+        function calculateRoasRow(tf) {
+            const cumSpend=dailySpend*tf.days;
+            const daysWithRevenue=Math.max(0,tf.days-trialLength);
+            const cumRevenue=revenuePerDay*daysWithRevenue;
+            let renewalRevenue=0;
+            for(let cohortDay=1;cohortDay<=daysWithRevenue;cohortDay++) {
+                const daysActive=daysWithRevenue-cohortDay;
+                if(daysActive>0) renewalRevenue+=renewalRevenueForCohort(daysActive);
             }
-            segments.push(current);
-            return segments;
+            const totalRevenue=cumRevenue+renewalRevenue;
+            const grossMargin=totalRevenue-cumSpend;
+            const roas=cumSpend>0?(totalRevenue/cumSpend)*100:0;
+            const grossMarginPct=totalRevenue>0?(grossMargin/totalRevenue)*100:0;
+            return {totalRevenue,cumSpend,grossMargin,grossMarginPct,roas,days:tf.days,label:tf.label};
         }
 
-        function fmtK(val) {
-            if (val >= 1000000) return '$' + (val / 1000000).toFixed(1) + 'M';
-            if (val >= 1000) return '$' + (val / 1000).toFixed(val % 1000 === 0 ? 0 : 1) + 'k';
-            return '$' + val.toFixed(0);
-        }
+        const baseTimeframes=[
+            {label:'Day 1'+(state[s].noTrial?' (first revenue)':' (spend)'),days:1},
+            ...(state[s].noTrial?[]:[
+                {label:'Day '+trialLength+' (trial ends)',days:trialLength},
+                {label:'Day '+(trialLength+1)+' (first revenue)',days:trialLength+1},
+            ]),
+            {label:'Week 1',days:7},{label:'Week 2',days:14},{label:'Week 4',days:28},
+            {label:'Week 8',days:56},{label:'Week 12',days:84}
+        ];
+        const extendedTimeframes=[
+            {label:'Week 16',days:112},{label:'Week 20',days:140},{label:'Week 24',days:168}
+        ];
 
-        function addChartTouch(container, zones, onEnter, onLeave, tooltip) {
-            zones.forEach(z => {
-                z.addEventListener('touchstart', e => {
-                    e.preventDefault();
-                    onEnter(z);
-                    const t = e.touches[0];
-                    tooltip.style.left = Math.min(t.clientX + 16, window.innerWidth - 180) + 'px';
-                    tooltip.style.top = Math.max(t.clientY - 100, 8) + 'px';
-                }, { passive: false });
-
-                z.addEventListener('touchmove', e => {
-                    e.preventDefault();
-                    const t = e.touches[0];
-                    // Find which zone the finger is currently over
-                    const el = document.elementFromPoint(t.clientX, t.clientY);
-                    if (el && el !== z && el.dataset.i !== undefined) onEnter(el);
-                    tooltip.style.left = Math.min(t.clientX + 16, window.innerWidth - 180) + 'px';
-                    tooltip.style.top = Math.max(t.clientY - 100, 8) + 'px';
-                }, { passive: false });
-
-                z.addEventListener('touchend', onLeave);
-            });
-        }
-
-        function drawRoasChart(results) {
-            const container = document.getElementById('roasChartContainer');
-            const tooltip = document.getElementById('roasTooltip');
-            if (!container || results.length < 2) return;
-
-            const W = container.clientWidth || 660;
-            const H = 240;
-            const pad = { top: 20, right: 92, bottom: 56, left: 58 };
-            const cW = W - pad.left - pad.right;
-            const cH = H - pad.top - pad.bottom;
-            const n = results.length;
-
-            const maxRoas = Math.max(150, ...results.map(r => r.roas));
-            const yMax = Math.ceil(maxRoas / 50) * 50;
-            const yBase = pad.top + cH;
-
-            const toX = i => pad.left + (n > 1 ? (i / (n - 1)) * cW : cW / 2);
-            const toY = v => pad.top + cH - Math.min(v / yMax, 1.05) * cH;
-
-            const pts = results.map((r, i) => ({
-                x: toX(i), y: Math.max(pad.top - 4, toY(r.roas)),
-                roas: r.roas, label: r.label,
-                totalRevenue: r.totalRevenue, cumSpend: r.cumSpend, grossMargin: r.grossMargin
-            }));
-
-            const y100 = toY(100);
-            const segments = buildColoredSegments(pts);
-            const shortLabel = l => l.replace(' (spend)', '').replace(' (trial ends)', '').replace(' (first revenue)', ' ↑').replace('Week ', 'W');
-
-            let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" style="display:block;font-family:system-ui,-apple-system,sans-serif;overflow:visible">
-            <defs>
-                <clipPath id="rc"><rect x="${pad.left}" y="${pad.top - 4}" width="${cW}" height="${cH + 8}"/></clipPath>
-                <linearGradient id="rgG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#22c55e" stop-opacity="0.14"/><stop offset="100%" stop-color="#22c55e" stop-opacity="0"/></linearGradient>
-                <linearGradient id="rgR" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ef4444" stop-opacity="0.1"/><stop offset="100%" stop-color="#ef4444" stop-opacity="0"/></linearGradient>
-            </defs>`;
-
-            for (let v = 0; v <= yMax; v += 50) {
-                const y = toY(v);
-                svg += `<line x1="${pad.left}" x2="${pad.left + cW}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
-                svg += `<text x="${pad.left - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#4b5563">${v}%</text>`;
-            }
-
-            if (y100 > pad.top && y100 < yBase) {
-                svg += `<line x1="${pad.left}" x2="${pad.left + cW}" y1="${y100}" y2="${y100}" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="4,3"/>`;
-                svg += `<text x="${pad.left + cW + 6}" y="${y100 + 4}" font-size="9" fill="rgba(255,255,255,0.28)" letter-spacing="0.07em">BREAK EVEN</text>`;
-            }
-
-            const finalRoas = pts[pts.length - 1].roas;
-            let areaPath = `M ${pts[0].x} ${yBase}` + pts.map(p => ` L ${p.x} ${p.y}`).join('') + ` L ${pts[n-1].x} ${yBase} Z`;
-            svg += `<path d="${areaPath}" fill="${finalRoas >= 100 ? 'url(#rgG)' : 'url(#rgR)'}" clip-path="url(#rc)"/>`;
-
-            segments.forEach(seg => {
-                const color = seg.color === 'green' ? '#22c55e' : '#f87171';
-                const d = seg.points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
-                svg += `<path d="${d}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" clip-path="url(#rc)"/>`;
-            });
-
-            pts.forEach(p => {
-                const c = p.roas >= 100 ? '#22c55e' : '#f87171';
-                svg += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${c}" stroke="#1f2937" stroke-width="2" clip-path="url(#rc)"/>`;
-            });
-
-            pts.forEach((p, i) => {
-                svg += `<text transform="rotate(-35,${p.x.toFixed(1)},${yBase + 14})" x="${p.x.toFixed(1)}" y="${yBase + 14}" text-anchor="end" font-size="10" fill="#4b5563">${shortLabel(results[i].label)}</text>`;
-            });
-
-            pts.forEach((p, i) => {
-                const prevX = i > 0 ? pts[i-1].x : p.x;
-                const nextX = i < n-1 ? pts[i+1].x : p.x;
-                const zl = (p.x - prevX) / 2, zr = (nextX - p.x) / 2;
-                svg += `<rect x="${(p.x - zl).toFixed(1)}" y="${pad.top}" width="${(zl + zr).toFixed(1)}" height="${cH}" fill="transparent" class="roas-hz" data-i="${i}" style="cursor:crosshair"/>`;
-            });
-
-            svg += `<line id="rCH" x1="0" x2="0" y1="${pad.top}" y2="${yBase}" stroke="rgba(255,255,255,0.12)" stroke-width="1" display="none"/>`;
-            svg += `<circle id="rHD" cx="0" cy="0" r="5.5" fill="white" stroke="#111827" stroke-width="2.5" display="none"/>`;
-            svg += '</svg>';
-
-            container.innerHTML = svg;
-
-            const onEnter = z => {
-                const i = +z.dataset.i, p = pts[i], r = results[i];
-                const ch = container.querySelector('#rCH'), hd = container.querySelector('#rHD');
-                ch.setAttribute('x1', p.x); ch.setAttribute('x2', p.x); ch.removeAttribute('display');
-                hd.setAttribute('cx', p.x); hd.setAttribute('cy', p.y);
-                hd.setAttribute('fill', p.roas >= 100 ? '#22c55e' : '#f87171');
-                hd.removeAttribute('display');
-                const rc = p.roas >= 100 ? '#22c55e' : '#f87171';
-                const mc = r.grossMargin >= 0 ? '#22c55e' : '#f87171';
-                const ms = r.grossMargin >= 0 ? '+' : '−';
-                tooltip.innerHTML = `
-                    <div class="tt-label" style="color:${rc}">${r.label}</div>
-                    <div class="tt-row">ROAS <span style="color:${rc}">${p.roas.toFixed(1)}%</span></div>
-                    <div class="tt-row">Revenue <span>${fmtK(r.totalRevenue)}</span></div>
-                    <div class="tt-row">Spend <span>${fmtK(r.cumSpend)}</span></div>
-                    <div class="tt-row">Margin <span style="color:${mc}">${ms}${fmtK(Math.abs(r.grossMargin))}</span></div>`;
-                tooltip.style.display = 'block';
-            };
-            const onLeave = () => {
-                tooltip.style.display = 'none';
-                container.querySelector('#rCH').setAttribute('display', 'none');
-                container.querySelector('#rHD').setAttribute('display', 'none');
-            };
-
-            const zones = [...container.querySelectorAll('.roas-hz')];
-            zones.forEach(z => {
-                z.addEventListener('mouseenter', () => onEnter(z));
-                z.addEventListener('mousemove', e => {
-                    tooltip.style.left = (e.clientX + 18) + 'px';
-                    tooltip.style.top = (e.clientY - 12) + 'px';
-                });
-                z.addEventListener('mouseleave', onLeave);
-            });
-            addChartTouch(container, zones, onEnter, onLeave, tooltip);
-        }
-
-        function drawCohortChart(cohortData, dailySpend) {
-            const container = document.getElementById('cohortChartContainer');
-            const tooltip = document.getElementById('cohortTooltip');
-            if (!container || cohortData.length < 2) return;
-
-            const W = container.clientWidth || 660;
-            const H = 220;
-            const pad = { top: 20, right: 92, bottom: 48, left: 64 };
-            const cW = W - pad.left - pad.right;
-            const cH = H - pad.top - pad.bottom;
-            const n = cohortData.length;
-            const yBase = pad.top + cH;
-
-            const maxRev = Math.max(1, ...cohortData.map(d => d.cumCohortRev));
-            const rawTick = maxRev / 4;
-            const mag = Math.pow(10, Math.floor(Math.log10(rawTick || 1)));
-            const tickInt = [1, 2, 2.5, 5, 10].map(v => v * mag).find(v => Math.ceil(maxRev / v) <= 6) || mag * 10;
-            const yMax = Math.ceil(maxRev / tickInt) * tickInt || tickInt;
-
-            const toX = i => pad.left + (n > 1 ? (i / (n - 1)) * cW : cW / 2);
-            const toY = v => pad.top + cH - Math.min(v / yMax, 1.02) * cH;
-
-            const pts = cohortData.map((d, i) => ({ x: toX(i), y: Math.max(pad.top - 2, toY(d.cumCohortRev)), ...d }));
-            const yBreak = toY(dailySpend);
-            const finalRoas = cohortData[n - 1].cohortRoas;
-            const lineColor = finalRoas >= 100 ? '#22c55e' : '#38bdf8';
-
-            let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" style="display:block;font-family:system-ui,-apple-system,sans-serif;overflow:visible">
-            <defs>
-                <clipPath id="cc"><rect x="${pad.left}" y="${pad.top - 4}" width="${cW}" height="${cH + 8}"/></clipPath>
-                <linearGradient id="cgrd" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.18"/>
-                    <stop offset="100%" stop-color="${lineColor}" stop-opacity="0.01"/>
-                </linearGradient>
-            </defs>`;
-
-            for (let v = 0; v <= yMax + 0.001; v += tickInt) {
-                const y = toY(v);
-                svg += `<line x1="${pad.left}" x2="${pad.left + cW}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
-                svg += `<text x="${pad.left - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#4b5563">${fmtK(v)}</text>`;
-            }
-
-            if (yBreak > pad.top && yBreak < yBase) {
-                svg += `<line x1="${pad.left}" x2="${pad.left + cW}" y1="${yBreak}" y2="${yBreak}" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="4,3"/>`;
-                svg += `<text x="${pad.left + cW + 6}" y="${yBreak + 4}" font-size="9" fill="rgba(255,255,255,0.28)" letter-spacing="0.07em">BREAK EVEN</text>`;
-            }
-
-            let areaPath = `M ${pts[0].x} ${yBase}` + pts.map(p => ` L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join('') + ` L ${pts[n-1].x} ${yBase} Z`;
-            svg += `<path d="${areaPath}" fill="url(#cgrd)" clip-path="url(#cc)"/>`;
-
-            const linePath = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
-            svg += `<path d="${linePath}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" clip-path="url(#cc)"/>`;
-
-            pts.forEach((p, i) => {
-                if (i % 4 === 0 || i === n - 1) {
-                    svg += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${lineColor}" stroke="#1f2937" stroke-width="2" clip-path="url(#cc)"/>`;
-                }
-            });
-
-            pts.forEach((p, i) => {
-                if (i % 4 === 0 || i === n - 1) {
-                    svg += `<text x="${p.x.toFixed(1)}" y="${yBase + 16}" text-anchor="middle" font-size="10" fill="#4b5563">W${i}</text>`;
-                }
-            });
-
-            const bw = cW / n;
-            pts.forEach((p, i) => {
-                svg += `<rect x="${(pad.left + i * bw).toFixed(1)}" y="${pad.top}" width="${bw.toFixed(1)}" height="${cH}" fill="transparent" class="cohort-hz" data-i="${i}" style="cursor:crosshair"/>`;
-            });
-
-            svg += `<line id="cCH" x1="0" x2="0" y1="${pad.top}" y2="${yBase}" stroke="rgba(255,255,255,0.12)" stroke-width="1" display="none"/>`;
-            svg += `<circle id="cHD" cx="0" cy="0" r="5.5" fill="white" stroke="#111827" stroke-width="2.5" display="none"/>`;
-            svg += '</svg>';
-
-            container.innerHTML = svg;
-
-            const onEnter = z => {
-                const i = +z.dataset.i, p = pts[i], d = cohortData[i];
-                const ch = container.querySelector('#cCH'), hd = container.querySelector('#cHD');
-                ch.setAttribute('x1', p.x); ch.setAttribute('x2', p.x); ch.removeAttribute('display');
-                hd.setAttribute('cx', p.x); hd.setAttribute('cy', p.y); hd.removeAttribute('display');
-                const rc = d.cohortRoas >= 100 ? '#22c55e' : '#f87171';
-                tooltip.innerHTML = `
-                    <div class="tt-label">Week ${d.week}</div>
-                    <div class="tt-row">Cum. Revenue <span>${fmtK(d.cumCohortRev)}</span></div>
-                    <div class="tt-row">This Week <span>${fmtK(d.weekRevenue)}</span></div>
-                    <div class="tt-row">ROAS <span style="color:${rc}">${d.cohortRoas.toFixed(1)}%</span></div>`;
-                tooltip.style.display = 'block';
-            };
-            const onLeave = () => {
-                tooltip.style.display = 'none';
-                container.querySelector('#cCH').setAttribute('display', 'none');
-                container.querySelector('#cHD').setAttribute('display', 'none');
-            };
-
-            const zones = [...container.querySelectorAll('.cohort-hz')];
-            zones.forEach(z => {
-                z.addEventListener('mouseenter', () => onEnter(z));
-                z.addEventListener('mousemove', e => {
-                    tooltip.style.left = (e.clientX + 18) + 'px';
-                    tooltip.style.top = (e.clientY - 12) + 'px';
-                });
-                z.addEventListener('mouseleave', onLeave);
-            });
-            addChartTouch(container, zones, onEnter, onLeave, tooltip);
-        }
-
-        // ─── Main calculate ───────────────────────────────────────────────────────
-
-        function calculate() {
-            const dailySpend = getValue('dailySpend'), ttpRate = getValue('ttpRate') / 100;
-            const trialLength = noTrial ? 0 : getValue('trialLength');
-            const weeklyPrice = getValue('weeklyPrice'), monthlyPrice = getValue('monthlyPrice'), annualPrice = getValue('annualPrice'), lifetimePrice = getValue('lifetimePrice');
-            const weeklySplit = getValue('weeklySplit') / 100, monthlySplit = getValue('monthlySplit') / 100, annualSplit = getValue('annualSplit') / 100, lifetimeSplit = getValue('lifetimeSplit') / 100;
-            const weeklyChurn = getValue('weeklyChurn') / 100;
-            const monthlyChurnRate = 1 - Math.pow(1 - weeklyChurn, 30 / 7);
-
-            const totalSplit = weeklySplit + monthlySplit + annualSplit + lifetimeSplit;
-            document.getElementById('splitWarning').classList.toggle('hidden', Math.abs(totalSplit - 1) < 0.01);
-
-            const ecpi = getValue('ecpi');
-            const installsPerDay = ecpi > 0 ? dailySpend / ecpi : 0;
-            const trialsPerDay = noTrial ? 0 : installsPerDay * (getValue('installToTrialRate') / 100);
-            const conversionsPerDay = noTrial
-                ? installsPerDay * (getValue('installToPaidRate') / 100)
-                : trialsPerDay * ttpRate;
-            const blendedArpu = (weeklyPrice * weeklySplit) + (monthlyPrice * monthlySplit) + (annualPrice * annualSplit) + (lifetimePrice * lifetimeSplit);
-            const netMultiplier = 1 - appleTax, netArpu = blendedArpu * netMultiplier;
-            const netWeeklyPrice = weeklyPrice * netMultiplier;
-            const netMonthlyPrice = monthlyPrice * netMultiplier;
-            const revenuePerDay = conversionsPerDay * netArpu;
-
-            document.getElementById('installsPerDay').textContent = formatNum(installsPerDay);
-            document.getElementById('trialsPerDay').textContent = formatNum(trialsPerDay);
-            document.getElementById('conversionsPerDay').textContent = formatNum(conversionsPerDay, 1);
-            document.getElementById('blendedArpu').textContent = formatCurrency(blendedArpu);
-            document.getElementById('netArpu').textContent = formatCurrency(netArpu);
-            document.getElementById('revenuePerDay').textContent = formatCurrency(revenuePerDay);
-
-            const baseTimeframes = [
-                { label: 'Day 1' + (noTrial ? ' (first revenue)' : ' (spend)'), days: 1 },
-                ...(noTrial ? [] : [
-                    { label: 'Day ' + trialLength + ' (trial ends)', days: trialLength },
-                    { label: 'Day ' + (trialLength + 1) + ' (first revenue)', days: trialLength + 1 },
-                ]),
-                { label: 'Week 1', days: 7 },
-                { label: 'Week 2', days: 14 },
-                { label: 'Week 4', days: 28 },
-                { label: 'Week 8', days: 56 },
-                { label: 'Week 12', days: 84 }
-            ];
-
-            const extendedTimeframes = [
-                { label: 'Week 16', days: 112 },
-                { label: 'Week 20', days: 140 },
-                { label: 'Week 24', days: 168 }
-            ];
-
-            function calculateRoasRow(tf) {
-                const cumSpend = dailySpend * tf.days;
-                const daysWithRevenue = Math.max(0, tf.days - trialLength);
-                const cumRevenue = revenuePerDay * daysWithRevenue;
-
-                let weeklyRenewalRevenue = 0, monthlyRenewalRevenue = 0;
-
-                for (let cohortDay = 1; cohortDay <= Math.min(tf.days, tf.days - trialLength); cohortDay++) {
-                    const daysSinceConversion = tf.days - trialLength - cohortDay + 1;
-                    if (daysSinceConversion > 0) {
-                        const renewalWeeks = Math.floor(daysSinceConversion / 7);
-                        const initWeekly = conversionsPerDay * weeklySplit;
-                        for (let r = 1; r <= renewalWeeks; r++) {
-                            weeklyRenewalRevenue += initWeekly * Math.pow(1 - weeklyChurn, r) * netWeeklyPrice;
-                        }
-                        const renewalMonths = Math.floor(daysSinceConversion / 30);
-                        const initMonthly = conversionsPerDay * monthlySplit;
-                        for (let r = 1; r <= renewalMonths; r++) {
-                            monthlyRenewalRevenue += initMonthly * Math.pow(1 - monthlyChurnRate, r) * netMonthlyPrice;
-                        }
-                    }
-                }
-
-                const totalRevenue = cumRevenue + weeklyRenewalRevenue + monthlyRenewalRevenue;
-                const grossMargin = totalRevenue - cumSpend;
-                const roas = cumSpend > 0 ? (totalRevenue / cumSpend) * 100 : 0;
-                const grossMarginPct = totalRevenue > 0 ? (grossMargin / totalRevenue) * 100 : 0;
-                return { totalRevenue, cumSpend, grossMargin, grossMarginPct, roas, days: tf.days, label: tf.label };
-            }
-
-            let roasHtml = '', roasHtmlExtended = '', paybackDay = null;
-            const allRoasData = [];
-
-            const makeRow = result => {
-                const roasColor = result.roas >= 100 ? 'text-green-400' : 'text-red-400';
-                return `<tr class="data-row border-b border-gray-700/60">
-                    <td class="py-2 px-2">${result.label}</td>
-                    <td class="py-2 px-2 num font-mono ${roasColor}">${formatPercent(result.roas)}</td>
-                    <td class="py-2 px-2">${getStatusBadge(result.roas)}</td>
-                    <td class="py-2 px-2 num font-mono text-right">${formatCurrency(result.totalRevenue)}</td>
-                    <td class="py-2 px-2 num font-mono text-right">${formatCurrency(result.cumSpend)}</td>
-                    <td class="py-2 px-2 text-right">${formatMargin(result.grossMargin)}</td>
-                    <td class="py-2 px-2 num font-mono text-right ${result.totalRevenue === 0 ? 'text-gray-500' : result.grossMarginPct >= 0 ? 'text-green-400' : 'text-red-400'}">${result.totalRevenue === 0 ? '—' : (result.grossMarginPct >= 0 ? '+' : '') + result.grossMarginPct.toFixed(1) + '%'}</td>
-                </tr>`;
-            };
-
-            baseTimeframes.forEach(tf => {
-                const result = calculateRoasRow(tf);
-                allRoasData.push(result);
-                if (result.roas >= 100 && paybackDay === null) paybackDay = result.days;
-                roasHtml += makeRow(result);
-            });
-
-            extendedTimeframes.forEach(tf => {
-                const result = calculateRoasRow(tf);
-                allRoasData.push(result);
-                if (result.roas >= 100 && paybackDay === null) paybackDay = result.days;
-                roasHtmlExtended += makeRow(result);
-            });
-
-            document.getElementById('roasTable').innerHTML = roasHtml;
-            document.getElementById('roasTableExtended').innerHTML = roasHtmlExtended;
-
-            // Update payback stat card
-            const paybackCard = document.getElementById('paybackCard');
-            if (paybackDay !== null) {
-                paybackCard.textContent = 'Day ' + paybackDay;
-                paybackCard.className = 'text-2xl font-bold num text-green-400';
-            } else {
-                paybackCard.textContent = '>24 wks';
-                paybackCard.className = 'text-2xl font-bold num text-red-400';
-            }
-
-            drawRoasChart(allRoasData);
-
-            // Cohort
-            let cohortHtml = '', cohortHtmlExtended = '', cumCohortRev = 0;
-            const initialWeeklySubs = conversionsPerDay * weeklySplit;
-            let activeWeeklySubs = initialWeeklySubs;
-            const cohortData = [];
-
-            for (let week = 0; week <= 24; week++) {
-                let weekRevenue = 0;
-                if (week === 0) {
-                    weekRevenue = 0;
-                    activeWeeklySubs = initialWeeklySubs;
-                } else if (week === 1) {
-                    weekRevenue = conversionsPerDay * netArpu;
-                    activeWeeklySubs = initialWeeklySubs;
-                } else {
-                    activeWeeklySubs = activeWeeklySubs * (1 - weeklyChurn);
-                    weekRevenue = activeWeeklySubs * netWeeklyPrice;
-                }
-                cumCohortRev += weekRevenue;
-                const cohortRoas = dailySpend > 0 ? (cumCohortRev / dailySpend) * 100 : 0;
-                cohortData.push({ week, weekRevenue, cumCohortRev, cohortRoas });
-
-                const roasColor = cohortRoas >= 100 ? 'text-green-400' : 'text-red-400';
-                const rowHtml = `<tr class="data-row border-b border-gray-700/60">
-                    <td class="py-2 px-2">Week ${week}</td>
-                    <td class="py-2 px-2 num font-mono text-right">${week === 0 ? '—' : formatNum(activeWeeklySubs, 1)}</td>
-                    <td class="py-2 px-2 num font-mono text-right">${formatCurrency(weekRevenue)}</td>
-                    <td class="py-2 px-2 num font-mono text-right">${formatCurrency(cumCohortRev)}</td>
-                    <td class="py-2 px-2 num font-mono text-right ${roasColor}">${formatPercent(cohortRoas)}</td>
-                </tr>`;
-
-                if (week <= 12) cohortHtml += rowHtml;
-                else cohortHtmlExtended += rowHtml;
-            }
-
-            document.getElementById('cohortTable').innerHTML = cohortHtml;
-            document.getElementById('cohortTableExtended').innerHTML = cohortHtmlExtended;
-
-            drawCohortChart(cohortData, dailySpend);
-        }
-
-        // Resize redraw
-        let resizeTimer;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(calculate, 120);
+        const allRoasData=[];
+        let paybackDay=null;
+        [...baseTimeframes,...extendedTimeframes].forEach(tf=>{
+            const result=calculateRoasRow(tf);
+            allRoasData.push(result);
+            if(result.roas>=100&&paybackDay===null) paybackDay=result.days;
         });
 
-        // Input listeners
-        document.querySelectorAll('input[type="number"]').forEach(input => {
-            input.addEventListener('input', () => { calculate(); autoSavePreset(); });
-        });
-        document.getElementById('tax15').addEventListener('click', () => setAppleTax(0.15));
-        document.getElementById('tax30').addEventListener('click', () => setAppleTax(0.30));
-        document.getElementById('modeWithTrial').addEventListener('click', () => setTrialMode(false));
-        document.getElementById('modeNoTrial').addEventListener('click', () => setTrialMode(true));
-        document.getElementById('toggleWeeks').addEventListener('click', toggleExtendedWeeks);
-        document.getElementById('toggleRoasWeeks').addEventListener('click', toggleExtendedRoas);
-        document.getElementById('presetSelect').addEventListener('change', onPresetChange);
-        document.getElementById('newPresetBtn').addEventListener('click', () => showInlineEdit('new'));
-        document.getElementById('renamePresetBtn').addEventListener('click', () => showInlineEdit('rename'));
-        document.getElementById('deletePresetBtn').addEventListener('click', deletePreset);
-        document.getElementById('presetSaveBtn').addEventListener('click', confirmInlineEdit);
-        document.getElementById('presetCancelBtn').addEventListener('click', hideInlineEdit);
-        document.getElementById('presetNameInput').addEventListener('keydown', e => {
-            if (e.key === 'Enter') confirmInlineEdit();
-            if (e.key === 'Escape') hideInlineEdit();
-        });
+        lastResults[sc]=allRoasData;
 
-        // Load presets from localStorage
-        try {
-            const saved = localStorage.getItem(PRESETS_STORAGE_KEY);
-            if (saved) {
-                cachedPresets = Object.assign({}, DEFAULT_PRESETS, JSON.parse(saved));
-            }
-        } catch(err) {
-            console.warn('Could not load saved presets, using defaults:', err);
-        }
+        const pb=document.getElementById('paybackCard'+s);
+        if(paybackDay!==null){pb.textContent='Day '+paybackDay;pb.className='text-base font-bold num text-green-400';}
+        else{pb.textContent='>24 wks';pb.className='text-base font-bold num text-red-400';}
 
-        renderPresetDropdown();
-        const lastPresetId = localStorage.getItem(LAST_PRESET_KEY);
-        if (lastPresetId) {
-            const presets = getPresets();
-            if (presets[lastPresetId]) {
-                currentPresetId = lastPresetId;
-                document.getElementById('presetSelect').value = lastPresetId;
-                loadPresetValues(presets[lastPresetId].values);
-                updatePresetButtons();
-            } else {
-                localStorage.removeItem(LAST_PRESET_KEY);
-                calculate();
+        const accentColor=sc==='A'?'#60a5fa':'#fbbf24';
+        drawRoasChart(allRoasData,'roasChartContainer'+s,'roasTooltip'+s,accentColor);
+
+        // Cohort curve using retention
+        let cumCohortRev=0;
+        const cohortData=[];
+        for(let week=0;week<=24;week++){
+            let weekRevenue=0;
+            if(week===0){weekRevenue=0;}
+            else if(week===1){weekRevenue=conversionsPerDay*netArpu;}
+            else {
+                const monthNow=(week*7)/30;
+                weekRevenue=conversionsPerDay*weeklySplit*getCumulativeRetention(monthNow,s)*netWeeklyPrice;
+                if(week%4===0){
+                    const moMonth=week/4;
+                    weekRevenue+=conversionsPerDay*monthlySplit*getCumulativeRetention(moMonth,s)*netMonthlyPrice;
+                }
             }
-        } else {
-            calculate();
+            cumCohortRev+=weekRevenue;
+            const cohortRoas=dailySpend>0?(cumCohortRev/dailySpend)*100:0;
+            cohortData.push({week,weekRevenue,cumCohortRev,cohortRoas});
         }
-    </script>
+        drawCohortChart(cohortData,dailySpend,'cohortChartContainer'+s,'cohortTooltip'+s,accentColor);
+        buildComparisonTable();
+    }
+
+    function buildComparisonTable() {
+        const rA=lastResults.A,rB=lastResults.B;
+        if(!rA.length||!rB.length) return;
+        const mapA=Object.fromEntries(rA.map(r=>[r.label,r]));
+        const mapB=Object.fromEntries(rB.map(r=>[r.label,r]));
+        const allLabels=[...new Set([...rA.map(r=>r.label),...rB.map(r=>r.label)])];
+        const base=allLabels.slice(0,allLabels.length-3);
+        const ext=allLabels.slice(allLabels.length-3);
+
+        function makeRow(label){
+            const a=mapA[label],b=mapB[label];
+            if(!a&&!b) return '';
+            const roasA=a?a.roas:0,roasB=b?b.roas:0,delta=roasB-roasA;
+            const caA=roasA>=100?'text-green-400':'text-red-400';
+            const caB=roasB>=100?'text-green-400':'text-red-400';
+            const caD=delta>0?'text-green-400':delta<0?'text-red-400':'text-gray-400';
+            return `<tr class="data-row border-b border-gray-700/60">
+                <td class="py-2 px-2 text-gray-300">${label}</td>
+                <td class="py-2 px-2 num font-mono ${caA}">${a?formatPercent(roasA):'—'}</td>
+                <td class="py-2 px-2 num font-mono ${caB}">${b?formatPercent(roasB):'—'}</td>
+                <td class="py-2 px-2 num font-mono ${caD}">${a&&b?(delta>=0?'+':'')+formatPercent(delta):'—'}</td>
+                <td class="py-2 px-2 num font-mono text-right text-blue-300">${a?formatCurrency(a.totalRevenue):'—'}</td>
+                <td class="py-2 px-2 num font-mono text-right text-amber-300">${b?formatCurrency(b.totalRevenue):'—'}</td>
+            </tr>`;
+        }
+        document.getElementById('comparisonTable').innerHTML=base.map(makeRow).join('');
+        document.getElementById('comparisonTableExtended').innerHTML=ext.map(makeRow).join('');
+    }
+
+    // ── Resize ────────────────────────────────────────────────────────────────
+    let resizeTimer;
+    window.addEventListener('resize',()=>{
+        clearTimeout(resizeTimer);
+        resizeTimer=setTimeout(()=>{calculate('A');calculate('B');},120);
+    });
+
+    // ── Wire all inputs ───────────────────────────────────────────────────────
+    ['A','B'].forEach(sc=>{
+        ['dailySpend','ecpi','installToTrialRate','trialLength','ttpRate','installToPaidRate',
+         'weeklyPrice','weeklySplit','monthlyPrice','monthlySplit','annualPrice','annualSplit',
+         'lifetimePrice','lifetimeSplit','retM1','retM2','retM3','retM4'
+        ].forEach(id=>{
+            document.getElementById(id+sc)?.addEventListener('input',()=>{calculate(sc);autoSavePreset(sc);});
+        });
+        document.getElementById('tax15'+sc).addEventListener('click',()=>setAppleTax(sc,0.15));
+        document.getElementById('tax30'+sc).addEventListener('click',()=>setAppleTax(sc,0.30));
+        document.getElementById('modeWithTrial'+sc).addEventListener('click',()=>setTrialMode(sc,false));
+        document.getElementById('modeNoTrial'+sc).addEventListener('click',()=>setTrialMode(sc,true));
+        document.getElementById('presetSelect'+sc).addEventListener('change',e=>onPresetChange(sc,e));
+        document.getElementById('newPresetBtn'+sc).addEventListener('click',()=>showInlineEdit(sc,'new'));
+        document.getElementById('renamePresetBtn'+sc).addEventListener('click',()=>showInlineEdit(sc,'rename'));
+        document.getElementById('deletePresetBtn'+sc).addEventListener('click',()=>deletePreset(sc));
+        document.getElementById('presetSaveBtn'+sc).addEventListener('click',()=>confirmInlineEdit(sc));
+        document.getElementById('presetCancelBtn'+sc).addEventListener('click',()=>hideInlineEdit(sc));
+        document.getElementById('presetNameInput'+sc).addEventListener('keydown',e=>{
+            if(e.key==='Enter') confirmInlineEdit(sc);
+            if(e.key==='Escape') hideInlineEdit(sc);
+        });
+    });
+    document.getElementById('toggleComparisonWeeks').addEventListener('click',()=>{
+        showExtendedComparison=!showExtendedComparison;
+        document.getElementById('comparisonTableExtended').classList.toggle('hidden',!showExtendedComparison);
+        document.getElementById('toggleComparisonWeeks').textContent=showExtendedComparison?'See less ▲':'See more (weeks 16–24) ▼';
+    });
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    try {
+        const saved=localStorage.getItem(PRESETS_STORAGE_KEY);
+        if(saved) cachedPresets=Object.assign({},DEFAULT_PRESETS,JSON.parse(saved));
+    } catch(e){}
+
+    renderPresetDropdowns();
+
+    ['A','B'].forEach(sc=>{
+        const lastKey=sc==='A'?LAST_PRESET_KEY_A:LAST_PRESET_KEY_B;
+        const lastId=localStorage.getItem(lastKey);
+        if(lastId&&getPresets()[lastId]){
+            state[sc].currentPresetId=lastId;
+            document.getElementById('presetSelect'+sc).value=lastId;
+            loadPresetValues(sc,getPresets()[lastId].values);
+            updatePresetButtons(sc);
+        } else { calculate(sc); }
+    });
+</script>
 </body>
 </html>
